@@ -1,0 +1,23 @@
+高级搜索界面
+主题输入框xpath：     /html/body/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/div[1]/div[1]/div/dl/dd[1]/div[2]/input
+作者输入框xpath：     /html/body/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/div[1]/div[1]/div/dl/dd[2]/div[2]/input
+文献来源输入框xpath：  /html/body/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/div[1]/div[1]/div/dl/dd[3]/div[2]/input
+检索按钮xpath：       /html/body/div[2]/div[1]/div[1]/div/div[2]/div/div[1]/div[1]/div[2]/div[3]/input
+
+搜索完成后界面
+题名1xpath：/html/body/div[2]/div[2]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/table/tbody/tr[1]/td[2]
+题名2xpath：/html/body/div[2]/div[2]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/table/tbody/tr[2]/td[2]
+作者1xpath：/html/body/div[2]/div[2]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/table/tbody/tr[1]/td[3]
+作者2xpath：/html/body/div[2]/div[2]/div[2]/div[2]/div/div[2]/div/div[1]/div/div/table/tbody/tr[2]/td[3]
+即最后的tr[i]代表本页第i个题目，td[2--6]分别代表2题名，3作者，4来源，5发表时间，6数据库
+共几条文献xpath：/html/body/div[2]/div[2]/div[2]/div[2]/div/div[1]/div/div[1]/span[1]/em
+
+详情界面
+题目xpath：/html/body/div[2]/div[1]/div[3]/div/div/div[3]/div/h1
+作者xpath：/html/body/div[2]/div[1]/div[3]/div/div/div[3]/div/h3[1]
+机构xpath：/html/body/div[2]/div[1]/div[3]/div/div/div[3]/div/h3[2]
+
+
+
+<a target="_blank" href="https://bar.cnki.net/bar/download/order?id=jBGETXBNdPImvx70aLAuJEaV3EyTcVwi28isq7XComj5o1sNbW%2BnKyR37s1i90m7sshnTQdlzf0o9Rxczx2nOsm82jDOg3yr%2BqRqj9L2CzT38kl2dYBs0JmMaHt4s6TVbv9zWnzCul16VyIBJdUGQActwAmgYWpVUN%2FtMpDpxar8xowaloy4pmg2AEN913MW2NVvSyv%2Bo4aIF7l7W4pNHeKWh8YPKlMmYr8y7qaibZs716EwqobZuyH9qS4r9V6jdygFAZVSLIHG9BPLv2JAig%3D%3D"><i></i>HTML阅读
+                  </a>
