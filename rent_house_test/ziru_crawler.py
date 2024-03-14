@@ -117,13 +117,13 @@ house_list = html.xpath('//div[@class="Z_list-box"]//div[@class="item"]')
 #     "tag": house_tag
 # }
 # print(house_data)
-print(len(house_list))
+# print(len(house_list))
 # 单页面上的房子爬虫
-n = 1
+# n = 1
 for i in house_list:
     # 解决房屋链接中掺杂广告，导致爬虫无法继续的问题
-    print(n)
-    n = n + 1
+    # print(n)
+    # n = n + 1
     try:
         house = i.xpath('./div[@class="pic-box"]/a/@href')[0]
     except:
@@ -137,7 +137,7 @@ for i in house_list:
     # print(new_url)
     house_htm = requests.get(new_url, headers=headers).content.decode('UTF-8')
     house_html = etree.HTML(house_htm)
-    price = get_price(house_html)
+    # price = get_price(house_html)
     name = house_html.xpath('/html/body/div[1]/section/aside/h1/text()')[0]
     house_info = house_html.xpath('//div[@class="Z_home_b clearfix"]/dl/dd/text()')
     square = house_info[0]
@@ -156,7 +156,7 @@ for i in house_list:
     house_tag = house_html.xpath('/html/body/div[1]/section/aside/div[2]//span/text()')
     house_data = {
         "name": name,
-        "price": price,
+        # "price": price,
         "square": square,
         "scale": scale,
         "direction": direction,
