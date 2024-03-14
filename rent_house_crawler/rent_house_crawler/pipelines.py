@@ -10,10 +10,11 @@ from itemadapter import ItemAdapter
 
 class RentHouseCrawlerPipeline:
 
-    def open_spider(self):
+    def open_spider(self, item):
         print('开始爬取')
 
-    def close_spider(self):
+    def close_spider(self, item):
         print('爬取结束')
+
     def process_item(self, item, spider):
         return item
