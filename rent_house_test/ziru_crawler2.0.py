@@ -93,7 +93,7 @@ for i in house_list:
     house_html = etree.HTML(house_htm)
     price_htm = house_html.xpath('/html/body/div[1]/section/aside/div[1]//i/@style')
     price = "￥"
-    for j in range(0,4):
+    for j in range(0, 4):
         price = price + get_price_by_ocr(price_htm[j])
     # print(price)
     name = house_html.xpath('/html/body/div[1]/section/aside/h1/text()')[0]
