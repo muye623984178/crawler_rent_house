@@ -1,7 +1,7 @@
 import requests
 from lxml import etree
 import re
-
+import ddddocr
 
 def switch_red(str):
     if str == "0":
@@ -48,7 +48,7 @@ def switch(str):
     elif str == "270":
         return "5"
 
-
+# get_price函数弃用，因为图片不唯一
 def get_price(html):
     price_html = html.xpath('//div[@class="Z_price"]')
     # print(price_html[0].xpath('./span/@class')[0])
@@ -71,10 +71,18 @@ def get_price(html):
             # price_math.append(switch_red(re.findall('background-position:-(.*?)px;', i)[0]))
         # print(re.findall('background-position:(.*?);', price_h[0]))
         # print(price_math)
-
-
     return price
 
+
+def get_price_by_ocr(html):
+    position = int(re.findall("background-position:-(.*?)px", html, re.S)[0])
+    url = "https:" + re.findall("url\((.*?)\)", html, re.S)[0]
+    # print(position)
+    # print(url)
+    img = requests.get(url).content
+    price_math = ocr.classification(img)
+    # print(price_math[int(position/30)])
+    return price_math[int(position/30)]
 
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 SLBrowser/9.0.3.1311 SLBChan/25'
@@ -120,6 +128,8 @@ house_list = html.xpath('//div[@class="Z_list-box"]//div[@class="item"]')
 # print(len(house_list))
 # 单页面上的房子爬虫
 # n = 1
+
+ocr = ddddocr.DdddOcr()
 for i in house_list:
     # 解决房屋链接中掺杂广告，导致爬虫无法继续的问题
     # print(n)
@@ -138,6 +148,12 @@ for i in house_list:
     house_htm = requests.get(new_url, headers=headers).content.decode('UTF-8')
     house_html = etree.HTML(house_htm)
     # price = get_price(house_html)
+    price_htm = house_html.xpath('/html/body/div[1]/section/aside/div[1]//i/@style')
+    # print(price_htm)
+    price = "￥"
+    for i in range(0,4):
+        price = price + get_price_by_ocr(price_htm[i])
+    # print(price)
     name = house_html.xpath('/html/body/div[1]/section/aside/h1/text()')[0]
     house_info = house_html.xpath('//div[@class="Z_home_b clearfix"]/dl/dd/text()')
     square = house_info[0]
@@ -156,7 +172,7 @@ for i in house_list:
     house_tag = house_html.xpath('/html/body/div[1]/section/aside/div[2]//span/text()')
     house_data = {
         "name": name,
-        # "price": price,
+        "price": price,
         "square": square,
         "scale": scale,
         "direction": direction,
