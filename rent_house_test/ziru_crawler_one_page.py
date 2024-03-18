@@ -10,7 +10,8 @@ import pymysql
 # 由于价格为图片所拼接，所以我们需要逐个图片识别数字，组合为价格
 def get_price_by_ocr(html):
     # style="background-image: url(//static8.ziroom.com/phoenix/pc/images/2020/list/img_pricenumber_list_red.png);background-position: -140px"
-    position = int(re.findall("background-position: -(.*?)px", html, re.S)[0])
+    # style="background-image: url(//static8.ziroom.com/phoenix/pc/images/price/new-list/a8a37e8b760bc3538c37b93d60043cfc.png);background-position: -192.6px"
+    position = float(re.findall("background-position: -(.*?)px", html, re.S)[0])
     url = "https:" + re.findall("url\((.*?)\)", html, re.S)[0]
     # print(position)
     # print(url)
@@ -68,7 +69,7 @@ class MysqlTool:
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 SLBrowser/9.0.3.1311 SLBChan/25'
 }
-url = "https://hz.ziroom.com/z/"
+url = "https://sh.ziroom.com/z/"
 htm = requests.get(url, headers=headers).content.decode('UTF-8')
 html = etree.HTML(htm)
 house_list = html.xpath('//div[@class="Z_list-box"]//div[@class="item"]')
@@ -102,10 +103,15 @@ for i in house_list:
     # print(tags)
     price_htm = i.xpath('./div[@class="info-box"]/div[@class="price-content"]/div[@class="price red"]/span['
                         '@class="num"]/@style')
+    # print(price_htm)
+    if not price_htm:   # 注意price后面有一个空格
+        price_htm = i.xpath('./div[@class="info-box"]/div[@class="price-content"]/div[@class="price "]/span['
+                            '@class="num"]/@style')
+
     price = "￥"
     for j in price_htm:
         price = price + get_price_by_ocr(j)
-    # print(price)
+    print(price)
 
     house_data = {
         'name': name,
