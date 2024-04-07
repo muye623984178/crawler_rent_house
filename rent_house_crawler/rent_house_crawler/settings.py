@@ -21,7 +21,7 @@ USER_AGENT = {
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
-LOG_LEVEL = "WARNING"
+# LOG_LEVEL = "WARNING"
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 32
 
@@ -67,7 +67,6 @@ DOWNLOAD_DELAY = 3
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     "rent_house_crawler.pipelines.RentHouseCrawlerPipeline": 300,
-    "rent_house_crawler.pipelines.save_db": 301,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
@@ -96,12 +95,3 @@ REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-# 参数中一个端口号 一个是字符集 都要注意
-DB_HOST = 'localhost'
-# 端口号是一个整数
-DB_PORT = 3306
-DB_USER = 'root'
-DB_PASSWROD = '123456'
-DB_NAME = 'rent_house'
-# utf-8的杠不允许写
-DB_CHARSET = 'utf8'

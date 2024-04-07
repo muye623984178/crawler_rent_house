@@ -121,3 +121,6 @@ def get_ziru_house(url):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    # house_data = get_ziru_house("http://hz.ziroom.com/z/")
+    # print(house_data)
+

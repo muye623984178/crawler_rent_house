@@ -103,7 +103,7 @@ with MysqlTool() as db:
             'scale': scale[j],
             'floor': floor[j],
             'decorate': decorate[j],
-            'href': href
+            'href': href[j]
         }
         print(house_data)
         sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, decorate, href) VALUES ("
