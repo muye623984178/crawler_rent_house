@@ -65,8 +65,8 @@ headers = {
 
 # 若存在图片型价格，数字由图片偏移量确定
 def get_price_by_ocr(html, ocr):
-    position = float(re.findall("background-position: -(.*?)px", html, re.S)[0])
-    url = "https:" + re.findall("url\((.*?)\)", html, re.S)[0]
+    position = abs(float(re.findall("background-position: (.*?)px", html, re.S)[0]))
+    url = "https:" + re.findall('url\("(.*?)"\)', html, re.S)[0]
     # print(position)
     # print(url)
     img = requests.get(url).content
@@ -190,7 +190,6 @@ def get_5a5j_house(url):
     # 创建Chrome驱动程序的实例
     driver = webdriver.Chrome(options=option)
 
-    # driver = webdriver.Chrome()
     driver.get(url)
     time.sleep(3)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
 
@@ -239,6 +238,86 @@ def get_5a5j_house(url):
     return all_house
 
 
+def get_ziru_house_new(url, ocr):
+    options = webdriver.ChromeOptions()
+    # 无法使用无头模式，会导致元素缺失
+    # options.add_argument('--headless')
+    # 添加启动参数 (add_argument)
+    options.add_argument("start-maximized")  # 最大化运行（全屏窗口）,不设置的话取元素会报错
+    options.add_argument(
+        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36")
+    # 创建Chrome驱动程序的实例
+    driver = webdriver.Chrome(options=options)
+    # 此步骤很重要，防止被各大网站识别出来使用了Selenium
+    driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {
+        "source": """
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => undefined
+        })
+      """
+    })
+    driver.get(url)
+    time.sleep(3)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
+    # 爬取可以简单获取的房屋信息
+    name_list = driver.find_elements_by_xpath('//div[@class="item"]/div[@class="info-box"]/h5/a')
+    name = [p.text for p in name_list][:-1]
+    href = [p.get_attribute('href') for p in name_list][:-1]
+    info_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="desc"]/div')
+    info = [p.text for p in info_list][:-2]
+    place = info[1::2]
+    info = info[::2]
+    square = []
+    floor = []
+    direction = []
+    for p in info:
+        s = p.replace(" ", "").split('|')
+        square.append(s[0])
+        floor.append(s[1])
+        direction.append(s[2])
+
+    # 爬取标签，并标准化标签数据
+    tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]')
+    tags = []
+    for div in tags_list:
+        spans = div.find_elements_by_tag_name("span")
+        tag = ''
+        for span in spans:
+            if span.text == '':
+                continue
+            elif "限时立减" in span.text:
+                tag = tag + span.text[0:-2] + ';'
+            else:
+                tag = tag + span.text + ';'
+        tags.append(tag[0:-1])
+
+    # 爬取价格
+    price_list = driver.find_elements_by_xpath('//div[@class="price-content"]/div[1]')
+    price = []
+    for div in price_list:
+        spans = div.find_elements_by_class_name('num')
+        p = '￥'
+        for span in spans:
+            p = p + get_price_by_ocr(span.get_attribute('style'), ocr)
+        price.append(p)
+    all_house = []
+    # 房屋信息整合
+    for j in range(len(name)):
+        house_data = {
+            'name': name[j],
+            'price': price[j],
+            'square': square[j],
+            'place': place[j],
+            'floor': floor[j],
+            'direction': direction[j],
+            'href': href[j],
+            'tags': tags[j]
+        }
+        print(house_data)
+        all_house.append(house_data)
+    return all_house
+
+
 if __name__ == '__main__':
     ocr = ddddocr.DdddOcr()  # ocr识别需要开启
     ziru = "http://hz.ziroom.com/z/"
@@ -256,5 +335,4 @@ if __name__ == '__main__':
     # print(new_lianjia)
     # get_lianjia_house(new_lianjia)
     # get_5a5j_house(new_wojia)
-    get_ziru_house(new_ziru, ocr)
-
+    get_ziru_house_new(new_ziru, ocr)

@@ -98,7 +98,7 @@ def get_price_by_ocr(html, ocr):
     price_math = ocr.classification(img)  # 由于ocr需要开启，所以在运行函数前需要ocr = ddddocr.DdddOcr()
     return price_math[int(position / 20)]
 
-
+# 爬取可以简单获取的房屋信息
 name_list = driver.find_elements_by_xpath('//div[@class="item"]/div[@class="info-box"]/h5/a')
 name = [p.text for p in name_list][:-1]
 href = [p.get_attribute('href') for p in name_list][:-1]
@@ -115,6 +115,7 @@ for p in info:
     floor.append(s[1])
     direction.append(s[2])
 
+# 爬取标签，并标准化标签数据
 tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]')
 tags = []
 for div in tags_list:
@@ -128,8 +129,8 @@ for div in tags_list:
         else:
             tag = tag + span.text + ';'
     tags.append(tag[0:-1])
-# print(tags)
 
+# 爬取价格
 ocr = ddddocr.DdddOcr()
 price_list = driver.find_elements_by_xpath('//div[@class="price-content"]/div[1]')
 price = []
@@ -137,12 +138,10 @@ for div in price_list:
     spans = div.find_elements_by_class_name('num')
     p = '￥'
     for span in spans:
-        # print(span.get_attribute('style'))
         p = p + get_price_by_ocr(span.get_attribute('style'), ocr)
-    # print(p)
     price.append(p)
-# print(price)
 
+# 房屋信息整合
 for j in range(len(name)):
     house_data = {
         'name': name[j],
