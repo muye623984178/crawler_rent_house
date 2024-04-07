@@ -115,20 +115,20 @@ for p in info:
     floor.append(s[1])
     direction.append(s[2])
 
-# tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]/span[position()>1]')
-# tags = [p.text for p in tags_list][:-1]
+tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]')
+tags = []
+for div in tags_list:
+    spans = div.find_elements_by_tag_name("span")
+    tag = ''
+    for span in spans:
+        if span.text == '':
+            continue
+        elif "限时立减" in span.text:
+            tag = tag + span.text[0:-2] + ';'
+        else:
+            tag = tag + span.text + ';'
+    tags.append(tag[0:-1])
 # print(tags)
-# tag = []
-# temp = []
-# for t in tags:
-#     if '限时立减' in t:
-#         tag.append(";".join(temp))
-#         temp.append(t)
-#     elif t == '':
-#         continue
-#     else:
-#         temp.append(t)
-# print(tag)
 
 ocr = ddddocr.DdddOcr()
 price_list = driver.find_elements_by_xpath('//div[@class="price-content"]/div[1]')
@@ -146,11 +146,12 @@ for div in price_list:
 for j in range(len(name)):
     house_data = {
         'name': name[j],
-        'price': '￥' + price[j],
+        'price': price[j],
         'square': square[j],
         'place': place[j],
         'floor': floor[j],
         'direction': direction[j],
-        'href': href[j]
+        'href': href[j],
+        'tags': tags[j]
     }
     print(house_data)
