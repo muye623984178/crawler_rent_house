@@ -244,7 +244,7 @@ if __name__ == '__main__':
     ziru = "http://hz.ziroom.com/z/"
     lianjia = "https://hz.lianjia.com/zufang/"
     wojia = "https://hz.5i5j.com/zufang/"
-    # get_ziru_house("http://hz.ziroom.com/z/"d, ocr)
+    # get_ziru_house("http://hz.ziroom.com/z/", ocr)
     # get_lianjia_house("https://hz.lianjia.com/zufang/")
     # get_5a5j_house("https://hz.5i5j.com/zufang/")
     i = 2
