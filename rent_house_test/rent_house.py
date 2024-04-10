@@ -352,7 +352,7 @@ if __name__ == '__main__':
     flag2 = True
     flag3 = True
     # 测试多页爬取
-    for i in range(2, 151):
+    for i in range(2, 51):
         if flag1:
             new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
             if get_lianjia_house(new_lianjia):
@@ -377,7 +377,7 @@ if __name__ == '__main__':
         if not flag1 and not flag2:
             break
 
-    for i in range(2, 151):
+    for i in range(2, 51):
         if flag3:
             new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
             if get_ziru_house_new(new_ziru, ocr):
