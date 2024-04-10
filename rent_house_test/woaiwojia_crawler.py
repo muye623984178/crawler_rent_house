@@ -71,6 +71,18 @@ name = [p.text for p in name_list][:-1]
 # print(name)
 href = [p.get_attribute('href') for p in name_list][:-1]
 # print(href)
+img_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]/li/div[@class="listImg"]/a/img')
+img_src = []
+for p in img_list:
+    q = p.get_attribute('src')
+    if "5i5j.com" in q or "aihome365.cn" in q:
+        img_src.append(q)
+    elif "data:image/png" in q:
+        img_src.append(p.get_attribute('data-src'))
+    else:
+        print("爬取图片链接出现未知错误" + p.get_attribute('title'))
+# print(img_src)
+
 price_list = driver.find_elements_by_xpath('//p[@class="redC"]/strong')
 price = [p.text for p in price_list][:-1]
 # print(price)
@@ -83,7 +95,7 @@ info = [p.text for p in info_list][:-1]
 scale = []
 square = []
 floor = []
-decorate = []
+# decorate = []
 for i in info:
     i = i.split('·')
     # print(i)
@@ -91,7 +103,7 @@ for i in info:
     scale.append(i[0].replace(" ", ""))
     square.append(i[1].replace(" ", ""))
     floor.append(i[3].replace(" ", ""))
-    decorate.append(i[4].replace(" ", ""))
+    # decorate.append(i[4].replace(" ", ""))
 
 with MysqlTool() as db:
     for j in range(len(name)):
@@ -102,11 +114,12 @@ with MysqlTool() as db:
             'place': place[j],
             'scale': scale[j],
             'floor': floor[j],
-            'decorate': decorate[j],
-            'href': href[j]
+            # 'decorate': decorate[j],
+            'href': href[j],
+            'img_src': img_src[j]
         }
         print(house_data)
-        sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, decorate, href) VALUES ("
+        sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, href, img_src) VALUES ("
                "%s, %s, %s, %s, %s, %s, %s, %s)")
-        args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], decorate[j], href[j])
+        args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], href[j], img_src[j])
         db.execute(sql, args, commit=True)

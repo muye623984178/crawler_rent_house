@@ -137,6 +137,7 @@ def get_lianjia_house(url):
         # 注意独栋公寓的不同
         name = house.xpath('./a/@title')[0]
         href = "https://hz.lianjia.com" + house.xpath('./a/@href')[0]
+        img_src = house.xpath('./a/img/@data-src')[0]
         price = house.xpath('./div/span[@class="content__list--item-price"]/em/text()') + house.xpath('./div/span['
                                                                                                       '@class'
                                                                                                       '="content__list'
@@ -172,14 +173,15 @@ def get_lianjia_house(url):
             'scale': scale,
             'direction': direction,
             'tags': tags,
-            'href': href
+            'href': href,
+            'img_src': img_src
         }
         print(house_data)
         all_house.append(house_data)
         with MysqlTool() as db:
-            sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s ,%s)")
-            args = (name, price, square, place, scale, direction, tags, href)
+            sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href, img_src) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            args = (name, price, square, place, scale, direction, tags, href, img_src)
             db.execute(sql, args, commit=True)
     return all_house
 
@@ -198,6 +200,16 @@ def get_5a5j_house(url):
     name_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]//li//div[@class="listCon"]/h3/a')
     name = [p.text for p in name_list][:-1]
     href = [p.get_attribute('href') for p in name_list][:-1]
+    img_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]/li/div[@class="listImg"]/a/img')
+    img_src = []
+    for p in img_list:
+        q = p.get_attribute('src')
+        if "5i5j.com" in q or "aihome365.cn" in q:
+            img_src.append(q)
+        elif "data:image/png" in q:
+            img_src.append(p.get_attribute('data-src'))
+        else:
+            print("爬取图片链接出现未知错误" + p.get_attribute('title'))
     price_list = driver.find_elements_by_xpath('//p[@class="redC"]/strong')
     price = [p.text for p in price_list][:-1]
     place_list = driver.find_elements_by_xpath('//div[@class="listX"]/p[2]')
@@ -207,14 +219,14 @@ def get_5a5j_house(url):
     scale = []
     square = []
     floor = []
-    decorate = []
+    # decorate = []
     all_house = []
     for i in info:
         i = i.split('·')
         scale.append(i[0].replace(" ", ""))
         square.append(i[1].replace(" ", ""))
         floor.append(i[3].replace(" ", ""))
-        decorate.append(i[4].replace(" ", ""))
+        # decorate.append(i[4].replace(" ", ""))
     with MysqlTool() as db:
         for j in range(len(name)):
             house_data = {
@@ -224,14 +236,15 @@ def get_5a5j_house(url):
                 'place': place[j],
                 'scale': scale[j],
                 'floor': floor[j],
-                'decorate': decorate[j],
-                'href': href[j]
+                # 'decorate': decorate[j],
+                'href': href[j],
+                'img_src': img_src[j]
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, decorate, href) VALUES ("
+            sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, href, img_src) VALUES ("
                    "%s, %s, %s, %s, %s, %s, %s, %s)")
-            args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], decorate[j], href[j])
+            args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], href[j], img_src[j])
             db.execute(sql, args, commit=True)
     return all_house
 
@@ -298,6 +311,15 @@ def get_ziru_house_new(url, ocr):
         for span in spans:
             p = p + get_price_by_ocr(span.get_attribute('style'), ocr)
         price.append(p)
+
+    # 爬取房屋图片
+    a_list = driver.find_elements_by_xpath('//div[@class="item"]/div[@class="pic-box"]/a[@target="_blank"]')
+    img_list = []
+    for a in a_list:
+        img = a.find_element_by_xpath('./img')
+        src = img.get_attribute('src')
+        img_list.append(src)
+
     all_house = []
     # 房屋信息整合
     with MysqlTool() as db:
@@ -310,13 +332,14 @@ def get_ziru_house_new(url, ocr):
                 'floor': floor[j],
                 'direction': direction[j],
                 'href': href[j],
-                'tags': tags[j]
+                'tags': tags[j],
+                'img_src': img_list[j]
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO ziru1(name, price, square, place, direction, tag, href, floor) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, %s)")
-            args = (name[j], price[j], square[j], place[j], direction[j], tags[j], href[j], floor[j])
+            sql = ("INSERT INTO ziru1(name, price, square, place, direction, tag, href, floor, img_src) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+            args = (name[j], price[j], square[j], place[j], direction[j], tags[j], href[j], floor[j], img_list[j])
             db.execute(sql, args, commit=True)
     driver.quit()
     return all_house
@@ -352,7 +375,7 @@ if __name__ == '__main__':
     flag2 = True
     flag3 = True
     # 测试多页爬取
-    for i in range(2, 51):
+    for i in range(2, 6):
         if flag1:
             new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
             if get_lianjia_house(new_lianjia):

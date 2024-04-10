@@ -70,7 +70,9 @@ for house in house_list:
     name = house.xpath('./a/@title')[0]
     # print(name)
     href = "https://hz.lianjia.com" + house.xpath('./a/@href')[0]
-    print(href)
+    # print(href)
+    img_src = house.xpath('./a/img/@data-src')[0]
+    # print(img_src)
     price = house.xpath('./div/span[@class="content__list--item-price"]/em/text()') + house.xpath('./div/span['
                                                                                                   '@class'
                                                                                                   '="content__list'
@@ -117,11 +119,12 @@ for house in house_list:
         'scale': scale,
         'direction': direction,
         'tags': tags,
-        'href': href
+        'href': href,
+        'img_src': img_src
     }
     print(house_data)
     with MysqlTool() as db:
-        sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href) VALUES ("
-               "%s, %s, %s, %s, %s, %s, %s ,%s)")
-        args = (name, price, square, place, scale, direction, tags, href)
+        sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href, img_src) VALUES ("
+               "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+        args = (name, price, square, place, scale, direction, tags, href, img_src)
         db.execute(sql, args, commit=True)

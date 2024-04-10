@@ -141,6 +141,15 @@ for div in price_list:
         p = p + get_price_by_ocr(span.get_attribute('style'), ocr)
     price.append(p)
 
+# 爬取房屋图片
+a_list = driver.find_elements_by_xpath('//div[@class="item"]/div[@class="pic-box"]/a[@target="_blank"]')
+img_list = []
+for a in a_list:
+    img = a.find_element_by_xpath('./img')
+    src = img.get_attribute('src')
+    img_list.append(src)
+print(img_list)
+
 # 房屋信息整合
 for j in range(len(name)):
     house_data = {
@@ -151,6 +160,7 @@ for j in range(len(name)):
         'floor': floor[j],
         'direction': direction[j],
         'href': href[j],
-        'tags': tags[j]
+        'tags': tags[j],
+        'img_src': img_list[j]
     }
     print(house_data)
