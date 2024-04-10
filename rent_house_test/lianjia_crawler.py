@@ -2,6 +2,8 @@ import requests
 from lxml import etree
 import requests
 import pymysql
+
+
 class MysqlTool:
     def __init__(self):
         """mysql 连接初始化"""
@@ -48,10 +50,11 @@ class MysqlTool:
             self.mysql_conn.rollback()
             raise e
 
+
 headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36 SLBrowser/9.0.3.1311 SLBChan/25'
 }
-url = "https://hz.lianjia.com/zufang/"
+url = "https://hz.lianjia.com/zufang/pg7/#contentList"
 htm = requests.get(url, headers=headers).content.decode('UTF-8')
 html = etree.HTML(htm)
 house_list = html.xpath('//div[@class="content__list"]/div')
@@ -80,15 +83,25 @@ for house in house_list:
         place = name
     # print(place)
     info = house.xpath('./div/p[@class="content__list--item--des"]/text()')
+    # print(info)
     # print(len(info))
     if len(info) == 8:
+        # 如['\n                ', '-', '-', '\n        ', '\n        89.00㎡\n        ', '南        ', '\n
+        # 3室1厅1卫        ', '\n      ']
         info = info[4:-1]
         direction = info[1].replace("\n", "").replace(" ", "")
     elif len(info) == 5:
         info = info[2:6]
         direction = ""
+    elif len(info) == 9:
+        # 即info中含有精选 如['\n                  精选          ', '\n                ', '-', '-', '\n        ', '\n
+        # 8.70㎡\n        ', '南        ', '\n          4室1厅1卫        ', '\n      ']
+        info = info[5:-1]
+        direction = info[1].replace("\n", "").replace(" ", "")
+
     square = info[0].replace("\n", "").replace(" ", "")
     scale = info[2].replace("\n", "").replace(" ", "")
+    # print(direction)
     # print(info)
     # print(square)
     # print(direction)

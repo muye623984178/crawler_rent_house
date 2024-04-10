@@ -136,37 +136,34 @@ def get_lianjia_house(url):
     for house in house_list:
         # 注意独栋公寓的不同
         name = house.xpath('./a/@title')[0]
-        # print(name)
         href = "https://hz.lianjia.com" + house.xpath('./a/@href')[0]
-        # print(href)
         price = house.xpath('./div/span[@class="content__list--item-price"]/em/text()') + house.xpath('./div/span['
                                                                                                       '@class'
                                                                                                       '="content__list'
                                                                                                       '--item-price'
                                                                                                       '"]/text()')
         price = "".join(price)
-        # print(price)
         place = "-".join(house.xpath('./div/p[@class="content__list--item--des"]/a/text()'))
         if place == "":
             place = name
-        # print(place)
         info = house.xpath('./div/p[@class="content__list--item--des"]/text()')
-        # print(len(info))
         if len(info) == 8:
+            # 如['\n                ', '-', '-', '\n        ', '\n        89.00㎡\n        ', '南        ', '\n
+            # 3室1厅1卫        ', '\n      ']
             info = info[4:-1]
             direction = info[1].replace("\n", "").replace(" ", "")
         elif len(info) == 5:
             info = info[2:6]
             direction = ""
+        elif len(info) == 9:
+            # 即info中含有精选 如['\n                  精选          ', '\n                ', '-', '-', '\n        ', '\n
+            # 8.70㎡\n        ', '南        ', '\n          4室1厅1卫        ', '\n      ']
+            info = info[5:-1]
+            direction = info[1].replace("\n", "").replace(" ", "")
         square = info[0].replace("\n", "").replace(" ", "")
         scale = info[2].replace("\n", "").replace(" ", "")
-        # print(info)
-        # print(square)
-        # print(direction)
-        # print(scale)
         tags = house.xpath('./div/p[@class="content__list--item--bottom oneline"]/i/text()')
         tags = ";".join(tags)
-        # print(tags)
         house_data = {
             'name': name,
             'price': price,
@@ -179,6 +176,11 @@ def get_lianjia_house(url):
         }
         print(house_data)
         all_house.append(house_data)
+        with MysqlTool() as db:
+            sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s ,%s)")
+            args = (name, price, square, place, scale, direction, tags, href)
+            db.execute(sql, args, commit=True)
     return all_house
 
 
@@ -194,20 +196,14 @@ def get_5a5j_house(url):
     time.sleep(3)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
 
     name_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]//li//div[@class="listCon"]/h3/a')
-    # print(len(p_list))
     name = [p.text for p in name_list][:-1]
-    # print(name)
     href = [p.get_attribute('href') for p in name_list][:-1]
-    # print(href)
     price_list = driver.find_elements_by_xpath('//p[@class="redC"]/strong')
     price = [p.text for p in price_list][:-1]
-    # print(price)
     place_list = driver.find_elements_by_xpath('//div[@class="listX"]/p[2]')
     place = [p.text for p in place_list][:-1]
-    # print(place)
     info_list = driver.find_elements_by_xpath('//div[@class="listX"]/p[1]')
     info = [p.text for p in info_list][:-1]
-    # print(info)
     scale = []
     square = []
     floor = []
@@ -215,26 +211,28 @@ def get_5a5j_house(url):
     all_house = []
     for i in info:
         i = i.split('·')
-        # print(i)
-        # print(len(i))
         scale.append(i[0].replace(" ", ""))
         square.append(i[1].replace(" ", ""))
         floor.append(i[3].replace(" ", ""))
         decorate.append(i[4].replace(" ", ""))
-
-    for j in range(len(name)):
-        house_data = {
-            'name': name[j],
-            'price': '￥' + price[j],
-            'square': square[j],
-            'place': place[j],
-            'scale': scale[j],
-            'floor': floor[j],
-            'decorate': decorate[j],
-            'href': href[j]
-        }
-        print(house_data)
-        all_house.append(house_data)
+    with MysqlTool() as db:
+        for j in range(len(name)):
+            house_data = {
+                'name': name[j],
+                'price': '￥' + price[j],
+                'square': square[j],
+                'place': place[j],
+                'scale': scale[j],
+                'floor': floor[j],
+                'decorate': decorate[j],
+                'href': href[j]
+            }
+            print(house_data)
+            all_house.append(house_data)
+            sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, decorate, href) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, %s)")
+            args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], decorate[j], href[j])
+            db.execute(sql, args, commit=True)
     return all_house
 
 
@@ -302,19 +300,25 @@ def get_ziru_house_new(url, ocr):
         price.append(p)
     all_house = []
     # 房屋信息整合
-    for j in range(len(name)):
-        house_data = {
-            'name': name[j],
-            'price': price[j],
-            'square': square[j],
-            'place': place[j],
-            'floor': floor[j],
-            'direction': direction[j],
-            'href': href[j],
-            'tags': tags[j]
-        }
-        print(house_data)
-        all_house.append(house_data)
+    with MysqlTool() as db:
+        for j in range(len(name)):
+            house_data = {
+                'name': name[j],
+                'price': price[j],
+                'square': square[j],
+                'place': place[j],
+                'floor': floor[j],
+                'direction': direction[j],
+                'href': href[j],
+                'tags': tags[j]
+            }
+            print(house_data)
+            all_house.append(house_data)
+            sql = ("INSERT INTO ziru1(name, price, square, place, direction, tag, href, floor) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, %s)")
+            args = (name[j], price[j], square[j], place[j], direction[j], tags[j], href[j], floor[j])
+            db.execute(sql, args, commit=True)
+    driver.quit()
     return all_house
 
 
@@ -323,16 +327,62 @@ if __name__ == '__main__':
     ziru = "http://hz.ziroom.com/z/"
     lianjia = "https://hz.lianjia.com/zufang/"
     wojia = "https://hz.5i5j.com/zufang/"
-    # get_ziru_house("http://hz.ziroom.com/z/", ocr)
-    # get_lianjia_house("https://hz.lianjia.com/zufang/")
-    # get_5a5j_house("https://hz.5i5j.com/zufang/")
-    i = 2
-    new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
-    new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
-    new_wojia = wojia + "n" + str(i) + "/"
-    # print(new_wojia)
-    print(new_ziru)
-    # print(new_lianjia)
+
+    get_lianjia_house(lianjia)
+    print("链家---第1页爬取完成")
+    get_5a5j_house(wojia)
+    print("我爱我家---第1页爬取完成")
+    get_ziru_house_new(ziru, ocr)
+    print("自如---第1页爬取完成")
+
+    # 测试单页爬取
+    # i = 2
+    # new_ziru = ziru + "p" + str(i) + "-q962499368544165889-a962499368544165889/"
+    # new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
+    # new_wojia = wojia + "n" + str(i) + "/"
     # get_lianjia_house(new_lianjia)
+    # print("链家---第" + str(i) + "页爬取完成")
     # get_5a5j_house(new_wojia)
-    get_ziru_house_new(new_ziru, ocr)
+    # print("我爱我家---第" + str(i) + "页爬取完成")
+    # get_ziru_house_new(new_ziru, ocr)
+    # print("自如---第" + str(i) + "页爬取完成")
+
+    # flag标志是否爬取
+    flag1 = True
+    flag2 = True
+    flag3 = True
+    # 测试多页爬取
+    for i in range(2, 151):
+        if flag1:
+            new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
+            if get_lianjia_house(new_lianjia):
+                print("链家---第" + str(i) + "页爬取完成")
+            else:
+                flag1 = False
+
+        if flag2:
+            new_wojia = wojia + "n" + str(i) + "/"
+            if get_5a5j_house(new_wojia):
+                print("我爱我家---第" + str(i) + "页爬取完成")
+            else:
+                flag2 = False
+
+        # if flag3:
+        #     new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
+        #     if get_ziru_house_new(new_ziru, ocr):
+        #         print("自如---第" + str(i) + "页爬取完成")
+        #     else:
+        #         flag3 = False
+
+        if not flag1 and not flag2:
+            break
+
+    for i in range(2, 151):
+        if flag3:
+            new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
+            if get_ziru_house_new(new_ziru, ocr):
+                print("自如---第" + str(i) + "页爬取完成")
+            else:
+                flag3 = False
+        else:
+            break
