@@ -27,11 +27,11 @@ cursor = db.cursor()
 
 @app.route('/getData', methods=['GET'])
 def getData():
-    sql = "SELECT name, place, price, href, tag, square FROM ziru1"
+    sql = "SELECT name, place, price, href, tag, square, img_src FROM ziru1"
     try:
         cursor.execute(sql)
         result = cursor.fetchall()
-        items_dict = [{'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4], 'square': item[5]} for item in result]
+        items_dict = [{'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4], 'square': item[5], 'img_src': item[6]} for item in result]
         return jsonify(items_dict)
     except Exception as e:
         print(f"An error occurred: {e}")

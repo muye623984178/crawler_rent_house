@@ -147,7 +147,13 @@ img_list = []
 for a in a_list:
     img = a.find_element_by_xpath('./img')
     src = img.get_attribute('src')
-    img_list.append(src)
+    if "imgpro" in src:
+        img_list.append(src)
+    elif "webimg" in src:
+        img_list.append(img.get_attribute('data-original'))
+    else:
+        print("爬取房屋图片有未知错误")
+
 print(img_list)
 
 # 房屋信息整合

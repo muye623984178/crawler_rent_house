@@ -133,56 +133,57 @@ def get_lianjia_house(url):
     html = etree.HTML(htm)
     house_list = html.xpath('//div[@class="content__list"]/div')
     all_house = []
-    for house in house_list:
-        # 注意独栋公寓的不同
-        name = house.xpath('./a/@title')[0]
-        href = "https://hz.lianjia.com" + house.xpath('./a/@href')[0]
-        img_src = house.xpath('./a/img/@data-src')[0]
-        price = house.xpath('./div/span[@class="content__list--item-price"]/em/text()') + house.xpath('./div/span['
-                                                                                                      '@class'
-                                                                                                      '="content__list'
-                                                                                                      '--item-price'
-                                                                                                      '"]/text()')
-        price = "".join(price)
-        place = "-".join(house.xpath('./div/p[@class="content__list--item--des"]/a/text()'))
-        if place == "":
-            place = name
-        info = house.xpath('./div/p[@class="content__list--item--des"]/text()')
-        if len(info) == 8:
-            # 如['\n                ', '-', '-', '\n        ', '\n        89.00㎡\n        ', '南        ', '\n
-            # 3室1厅1卫        ', '\n      ']
-            info = info[4:-1]
-            direction = info[1].replace("\n", "").replace(" ", "")
-        elif len(info) == 5:
-            info = info[2:6]
-            direction = ""
-        elif len(info) == 9:
-            # 即info中含有精选 如['\n                  精选          ', '\n                ', '-', '-', '\n        ', '\n
-            # 8.70㎡\n        ', '南        ', '\n          4室1厅1卫        ', '\n      ']
-            info = info[5:-1]
-            direction = info[1].replace("\n", "").replace(" ", "")
-        square = info[0].replace("\n", "").replace(" ", "")
-        scale = info[2].replace("\n", "").replace(" ", "")
-        tags = house.xpath('./div/p[@class="content__list--item--bottom oneline"]/i/text()')
-        tags = ";".join(tags)
-        house_data = {
-            'name': name,
-            'price': price,
-            'square': square,
-            'place': place,
-            'scale': scale,
-            'direction': direction,
-            'tags': tags,
-            'href': href,
-            'img_src': img_src
-        }
-        print(house_data)
-        all_house.append(house_data)
-        with MysqlTool() as db:
+    with MysqlTool() as db:
+        for house in house_list:
+            # 注意独栋公寓的不同
+            name = house.xpath('./a/@title')[0]
+            href = "https://hz.lianjia.com" + house.xpath('./a/@href')[0]
+            img_src = house.xpath('./a/img/@data-src')[0]
+            price = house.xpath('./div/span[@class="content__list--item-price"]/em/text()') + house.xpath('./div/span['
+                                                                                                          '@class'
+                                                                                                          '="content__list'
+                                                                                                          '--item-price'
+                                                                                                          '"]/text()')
+            price = "".join(price)
+            place = "-".join(house.xpath('./div/p[@class="content__list--item--des"]/a/text()'))
+            if place == "":
+                place = name
+            info = house.xpath('./div/p[@class="content__list--item--des"]/text()')
+            if len(info) == 8:
+                # 如['\n                ', '-', '-', '\n        ', '\n        89.00㎡\n        ', '南        ', '\n
+                # 3室1厅1卫        ', '\n      ']
+                info = info[4:-1]
+                direction = info[1].replace("\n", "").replace(" ", "")
+            elif len(info) == 5:
+                info = info[2:6]
+                direction = ""
+            elif len(info) == 9:
+                # 即info中含有精选 如['\n                  精选          ', '\n                ', '-', '-', '\n        ', '\n
+                # 8.70㎡\n        ', '南        ', '\n          4室1厅1卫        ', '\n      ']
+                info = info[5:-1]
+                direction = info[1].replace("\n", "").replace(" ", "")
+            square = info[0].replace("\n", "").replace(" ", "")
+            scale = info[2].replace("\n", "").replace(" ", "")
+            tags = house.xpath('./div/p[@class="content__list--item--bottom oneline"]/i/text()')
+            tags = ";".join(tags)
+            house_data = {
+                'name': name,
+                'price': price,
+                'square': square,
+                'place': place,
+                'scale': scale,
+                'direction': direction,
+                'tags': tags,
+                'href': href,
+                'img_src': img_src
+            }
+            print(house_data)
+            all_house.append(house_data)
             sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href, img_src) VALUES ("
                    "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
             args = (name, price, square, place, scale, direction, tags, href, img_src)
             db.execute(sql, args, commit=True)
+
     return all_house
 
 
@@ -318,7 +319,12 @@ def get_ziru_house_new(url, ocr):
     for a in a_list:
         img = a.find_element_by_xpath('./img')
         src = img.get_attribute('src')
-        img_list.append(src)
+        if "imgpro" in src:
+            img_list.append(src)
+        elif "webimg" in src:
+            img_list.append(img.get_attribute('data-original'))
+        else:
+            print("爬取房屋图片有未知错误")
 
     all_house = []
     # 房屋信息整合
@@ -400,9 +406,9 @@ if __name__ == '__main__':
         if not flag1 and not flag2:
             break
 
-    for i in range(2, 51):
+    for i in range(2, 6):
         if flag3:
-            new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
+            new_ziru = ziru + "p" + str(i) + "-q962855554269671425-a962855554269671425/"
             if get_ziru_house_new(new_ziru, ocr):
                 print("自如---第" + str(i) + "页爬取完成")
             else:
