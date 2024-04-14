@@ -113,7 +113,7 @@ for house in house_list:
     # print(tags)
     house_data = {
         'name': name,
-        'price': price,
+        'price': '￥' + price,
         'square': square,
         'place': place,
         'scale': scale,
@@ -126,5 +126,5 @@ for house in house_list:
     with MysqlTool() as db:
         sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href, img_src) VALUES ("
                "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
-        args = (name, price, square, place, scale, direction, tags, href, img_src)
+        args = (name, '￥' + price, square, place, scale, direction, tags, href, img_src)
         db.execute(sql, args, commit=True)

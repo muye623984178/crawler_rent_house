@@ -105,21 +105,30 @@ for i in info:
     floor.append(i[3].replace(" ", ""))
     # decorate.append(i[4].replace(" ", ""))
 
+tags_list = driver.find_elements_by_xpath('//div[@class="listCon"]/div[@class="listTag rentListTag"]')
+tags = []
+for p in tags_list:
+    span = p.find_elements_by_xpath('./span')
+    tag = [i.text for i in span]
+    tags.append(';'.join(tag))
+    # print(';'.join(tag))
+
 with MysqlTool() as db:
     for j in range(len(name)):
         house_data = {
             'name': name[j],
-            'price': '￥' + price[j],
+            'price': price[j] + " 元/月",
             'square': square[j],
             'place': place[j],
             'scale': scale[j],
             'floor': floor[j],
             # 'decorate': decorate[j],
             'href': href[j],
-            'img_src': img_src[j]
+            'img_src': img_src[j],
+            'tag': tags[j]
         }
         print(house_data)
-        sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, href, img_src) VALUES ("
-               "%s, %s, %s, %s, %s, %s, %s, %s)")
-        args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], href[j], img_src[j])
+        sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, href, img_src, tag) VALUES ("
+               "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
+        args = (name[j], price[j] + " 元/月", square[j], place[j], scale[j], floor[j], href[j], img_src[j], tags[j])
         db.execute(sql, args, commit=True)

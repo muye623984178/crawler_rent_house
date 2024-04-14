@@ -179,9 +179,9 @@ def get_lianjia_house(url):
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO lianjia(name, price, square, place, scale, direction, tag, href, img_src) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
-            args = (name, price, square, place, scale, direction, tags, href, img_src)
+            sql = ("INSERT INTO house_info(name, price, square, place, tag, href, img_src, source) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, '链家')")
+            args = (name, price, square, place, tags, href, img_src)
             db.execute(sql, args, commit=True)
 
     return all_house
@@ -221,31 +221,40 @@ def get_5a5j_house(url):
     square = []
     floor = []
     # decorate = []
-    all_house = []
+
     for i in info:
         i = i.split('·')
         scale.append(i[0].replace(" ", ""))
         square.append(i[1].replace(" ", ""))
         floor.append(i[3].replace(" ", ""))
         # decorate.append(i[4].replace(" ", ""))
+    tags_list = driver.find_elements_by_xpath('//div[@class="listCon"]/div[@class="listTag rentListTag"]')
+    tags = []
+    for p in tags_list:
+        span = p.find_elements_by_xpath('./span')
+        tag = [i.text for i in span]
+        tags.append(';'.join(tag))
+
+    all_house = []
     with MysqlTool() as db:
         for j in range(len(name)):
             house_data = {
                 'name': name[j],
-                'price': '￥' + price[j],
+                'price': price[j] + " 元/月",
                 'square': square[j],
                 'place': place[j],
                 'scale': scale[j],
                 'floor': floor[j],
                 # 'decorate': decorate[j],
                 'href': href[j],
-                'img_src': img_src[j]
+                'img_src': img_src[j],
+                'tag': tags[j]
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO woaiwojia(name, price, square, place, scale, floor, href, img_src) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, %s)")
-            args = (name[j], '￥' + price[j], square[j], place[j], scale[j], floor[j], href[j], img_src[j])
+            sql = ("INSERT INTO house_info(name, price, square, place, href, img_src, tag, source) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, '我爱我家')")
+            args = (name[j], price[j] + " 元/月", square[j], place[j], href[j], img_src[j], tags[j])
             db.execute(sql, args, commit=True)
     return all_house
 
@@ -308,7 +317,7 @@ def get_ziru_house_new(url, ocr):
     price = []
     for div in price_list:
         spans = div.find_elements_by_class_name('num')
-        p = '￥'
+        p = ''
         for span in spans:
             p = p + get_price_by_ocr(span.get_attribute('style'), ocr)
         price.append(p)
@@ -332,7 +341,7 @@ def get_ziru_house_new(url, ocr):
         for j in range(len(name)):
             house_data = {
                 'name': name[j],
-                'price': price[j],
+                'price': price[j] + " 元/月",
                 'square': square[j],
                 'place': place[j],
                 'floor': floor[j],
@@ -343,9 +352,9 @@ def get_ziru_house_new(url, ocr):
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO ziru1(name, price, square, place, direction, tag, href, floor, img_src) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, %s, %s)")
-            args = (name[j], price[j], square[j], place[j], direction[j], tags[j], href[j], floor[j], img_list[j])
+            sql = ("INSERT INTO house_info(name, price, square, place, tag, href, img_src, source) VALUES ("
+                   "%s, %s, %s, %s, %s, %s, %s, '自如')")
+            args = (name[j], price[j] + " 元/月", square[j], place[j], tags[j], href[j], img_list[j])
             db.execute(sql, args, commit=True)
     driver.quit()
     return all_house
