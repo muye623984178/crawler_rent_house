@@ -207,7 +207,7 @@ def get_5a5j_house(url, area):
     for p in img_list:
         q = p.get_attribute('src')
         if q is None:
-            img_src.append(None)
+            img_src.append("None")
             print(url)
             print(name)
             continue
