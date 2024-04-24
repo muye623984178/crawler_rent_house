@@ -128,7 +128,7 @@ def get_ziru_house(url, ocr):
     return all_house
 
 
-def get_lianjia_house(url,area):
+def get_lianjia_house(url, area):
     htm = requests.get(url, headers=headers).content.decode('UTF-8')
     html = etree.HTML(htm)
     house_list = html.xpath('//div[@class="content__list"]/div')
@@ -206,6 +206,11 @@ def get_5a5j_house(url, area):
     img_src = []
     for p in img_list:
         q = p.get_attribute('src')
+        if q is None:
+            img_src.append(None)
+            print(url)
+            print(name)
+            continue
         if "5i5j.com" in q or "aihome365.cn" in q:
             img_src.append(q)
         elif "data:image/png" in q:
@@ -295,10 +300,31 @@ def get_ziru_house_new(url, ocr, area):
     direction = []
     for p in info:
         s = p.replace(" ", "").split('|')
-        print(s)
-        square.append(s[0])
-        floor.append(s[1])
-        direction.append(s[2])
+        s_flag = False
+        f_flag = False
+        d_flag = False
+
+        for s_info in s:
+            if '㎡' in s_info:
+                square.append(s_info)
+                s_flag = True
+            elif '层' in s_info:
+                floor.append(s_info)
+                f_flag = True
+            elif '朝' in s_info:
+                direction.append(s_info)
+                d_flag = True
+            else:
+                print('-********************')
+                print('info出现新的情况' + s)
+                print('-********************')
+
+        if not s_flag:
+            square.append('None')
+        if not f_flag:
+            square.append('None')
+        if not d_flag:
+            square.append('None')
 
     # 爬取标签，并标准化标签数据
     tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]')
@@ -452,7 +478,7 @@ if __name__ == '__main__':
         flag2 = True
         flag3 = True
         # 测试多页爬取
-        for i in range(2, 6):
+        for i in range(2, 4):
             if flag1:
                 new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
                 if get_lianjia_house(new_lianjia, area):
@@ -477,7 +503,7 @@ if __name__ == '__main__':
             if not flag1 and not flag2:
                 break
 
-        for i in range(2, 6):
+        for i in range(2, 4):
             if flag3:
                 new_ziru = ziru + "p" + str(i) + "-q962855554269671425-a962855554269671425/"
                 if get_ziru_house_new(new_ziru, ocr, area):
