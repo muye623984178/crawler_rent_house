@@ -35,9 +35,12 @@ def login():
         print(data)
         return jsonify({'error': 'Failed to get openid and session_key'}), 500
 
+
 # 连接数据库
 db = pymysql.connect(host='localhost', user='root', password='root', db='rent_house')
 cursor = db.cursor()
+
+
 @app.route('/getData', methods=['GET'])
 def getData():
     sql = "SELECT name, place, price, href, tag, square, img_src, source, id FROM house_info"
@@ -55,18 +58,86 @@ def getData():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/getStoreData', methods=['POST'])
+@app.route('/getData_page', methods=['GET'])
+def getData_page():
+    page = request.args.get('page', 1, type=int)  # 默认第一页
+    per_page = 20  # 每页显示20条数据
+    offset = (page - 1) * per_page  # 计算偏移量
+
+    try:
+        # 执行SQL查询
+        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id FROM house_info "
+               "LIMIT %s OFFSET %s")
+        cursor.execute(sql, (per_page, offset))
+        result = cursor.fetchall()
+        if result is not None:
+            items_dict = [
+                {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                 'square': item[5],
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+            return jsonify(items_dict)
+    except Exception as e:
+        # 处理异常
+        print(e)
+        return jsonify({'error': 'Failed to retrieve data'}), 500
+
+
+@app.route('/getDataByArea', methods=['POST'])
+def getDataByArea():
+    area = request.json.get('area')
+    sql = "SELECT name, place, price, href, tag, square, img_src, source, id FROM house_info where area = %s"
+    try:
+        cursor.execute(sql, area)
+        result = cursor.fetchall()
+        if result is not None:
+            items_dict = [
+                {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                 'square': item[5],
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+            return jsonify(items_dict)
+    except Exception as e:
+        print(f"An error occurred in getData: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/getDataByArea_page', methods=['GET'])
+def getDataByArea_page():
+    page = request.args.get('page', 1, type=int)  # 默认第一页
+    area = request.args.get('area', '北京', type=str)
+    per_page = 20  # 每页显示20条数据
+    offset = (page - 1) * per_page  # 计算偏移量
+
+    try:
+        # 执行SQL查询
+        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id FROM house_info WHERE area=%s"
+               "LIMIT %s OFFSET %s")
+        cursor.execute(sql, (area, per_page, offset))
+        result = cursor.fetchall()
+        if result is not None:
+            items_dict = [
+                {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                 'square': item[5],
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+            return jsonify(items_dict)
+    except Exception as e:
+        # 处理异常
+        print(e)
+        return jsonify({'error': 'Failed to retrieve data'}), 500
+
+
+@app.route('/getStoreData', methods=['GET'])
 def getStoreData():
-    openId = request.json.get('openid')
+    # openId = request.json.get('openid')
+    openId = request.args.get('openid')
     # print(openId)
     if not openId:
         return jsonify({'error': 'Missing openId'}), 400
     sql = ('SELECT house_info.name, house_info.price, house_info.square, house_info.place, house_info.tag, '
-           'house_info.href, house_info.img_src, house_info.source, house_info.id FROM house_info,store_info WHERE userId = %s AND '
+           'house_info.href, house_info.img_src, house_info.source, house_info.id FROM house_info,store_info WHERE '
+           'userId = %s AND '
            'house_info.`id` = store_info.`houseId`')
     try:
         cursor.execute(sql, openId)
-        # db.commit()
         result = cursor.fetchall()
         if result is not None:
             items_dict = [
@@ -75,6 +146,9 @@ def getStoreData():
                  'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
             # print(items_dict)
             return jsonify(items_dict)
+        else:
+            print("无数据")
+            return jsonify({'error': 'No data found'}), 404  # 返回404状态码和错误信息
     except Exception as e:
         print(f"An error occurred: {e}")
         return jsonify({'error': str(e)}), 500
@@ -119,7 +193,8 @@ def insertData():
 @app.route('/judgeStore', methods=['POST'])
 def judgeStore():
     openId = request.json.get('openid')
-    print(openId)
+    # openId = request.args.get('openid')
+    # print(openId)
     if not openId:
         return jsonify({'error': 'Missing openId'}), 400
     sql = 'SELECT houseId FROM store_info WHERE userId=%s'
@@ -133,7 +208,7 @@ def judgeStore():
             for item in result:
                 # print(item[0])
                 favoriteMap[item[0]] = True
-            print(favoriteMap)
+            # print(favoriteMap)
             return jsonify(favoriteMap)
 
     except Exception as e:
