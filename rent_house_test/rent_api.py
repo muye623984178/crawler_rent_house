@@ -9,8 +9,6 @@ APPID = 'wxe7134cbc391a01e4'
 SECRET = 'e8973b95c8d3d4674c64e2d9dc1189e9'
 
 
-
-
 @app.route('/login', methods=['POST'])
 def login():
     code = request.json.get('code')
