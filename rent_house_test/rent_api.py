@@ -1,6 +1,10 @@
+from io import BytesIO
+
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response, send_file
 import pymysql
+from openpyxl import Workbook
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -123,6 +127,57 @@ def getDataByArea_page():
         # 处理异常
         print(e)
         return jsonify({'error': 'Failed to retrieve data'}), 500
+
+
+@app.route('/export', methods=['GET'])
+def export():
+    area = request.args.get('area')  # 使用GET请求时，通过request.args获取参数
+    sql = "SELECT id, name, place, price, href, tag, square, img_src, source FROM house_info where area = %s"
+
+    try:
+        cursor.execute(sql, (area,))
+        result = cursor.fetchall()
+        if result is not None:
+            column_names = [column_name[0] for column_name in cursor.description]
+            df = pd.DataFrame(result, columns=column_names)
+            # df = pd.DataFrame(result)
+            # 使用BytesIO来存储Excel文件
+            # BytesIO创建一个内存中的文件流
+            excel_stream = BytesIO()
+            df.to_excel(excel_stream, index=False, engine='openpyxl')
+            # df.to_excel('output.xlsx', index=False, engine='openpyxl')
+            # 重置文件指针到开始
+            excel_stream.seek(0)
+
+            # # 设置响应
+            # response = make_response(excel_stream.read())
+            # response.headers['Content-Disposition'] = f'attachment; filename={area}-租房信息.xlsx'.encode('utf-8')
+            # response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            # return response
+            return send_file(excel_stream, attachment_filename='data.xlsx', as_attachment=True)
+
+    except Exception as e:
+        print(f"An error occurred in getData: {e}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/findData', methods=['GET'])
+def findData():
+    word = request.args.get('word')
+    word = '%' + word + '%'
+    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s"
+    try:
+        cursor.execute(sql, word)
+        result = cursor.fetchall()
+        if result is not None:
+            items_dict = [
+                {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                 'square': item[5],
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+            return jsonify(items_dict)
+    except Exception as e:
+        print(f"An error occurred in getData: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/getStoreData', methods=['GET'])
