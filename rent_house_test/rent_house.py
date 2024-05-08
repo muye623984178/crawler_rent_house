@@ -447,19 +447,26 @@ if __name__ == '__main__':
                 '广州', '武汉']
 
     for area in all_area:
+        # flag标志是否爬取
+        flag1 = False
+        flag2 = False
+        flag3 = False
         print('爬取区域' + area + '中')
         if area in area_lianjia:
             lianjia = dict_lianjia[area]
+            get_lianjia_house(lianjia, area)
+            print(area + "链家---第1页爬取完成")
+            flag1 = True
         if area in area_5ai5jia:
             wojia = dict_5ai5jia[area]
+            get_5a5j_house(wojia, area)
+            print(area + "我爱我家---第1页爬取完成")
+            flag2 = True
         if area in area_ziru:
             ziru = dict_ziru[area]
-        get_lianjia_house(lianjia, area)
-        print(area + "链家---第1页爬取完成")
-        get_5a5j_house(wojia, area)
-        print(area + "我爱我家---第1页爬取完成")
-        get_ziru_house_new(ziru, ocr, area)
-        print(area + "自如---第1页爬取完成")
+            get_ziru_house_new(ziru, ocr, area)
+            print(area + "自如---第1页爬取完成")
+            flag3 = True
 
         # 测试单页爬取
         # i = 2
@@ -473,10 +480,7 @@ if __name__ == '__main__':
         # get_ziru_house_new(new_ziru, ocr)
         # print("自如---第" + str(i) + "页爬取完成")
 
-        # flag标志是否爬取
-        flag1 = True
-        flag2 = True
-        flag3 = True
+
         # 测试多页爬取
         for i in range(2, 4):
             if flag1:
