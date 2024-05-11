@@ -1,3 +1,4 @@
+import os
 from io import BytesIO
 
 import requests
@@ -5,6 +6,7 @@ from flask import Flask, request, jsonify, make_response, send_file
 import pymysql
 from openpyxl import Workbook
 import pandas as pd
+from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl
 
 app = Flask(__name__)
 
@@ -43,6 +45,71 @@ def login():
 # 连接数据库
 db = pymysql.connect(host='localhost', user='root', password='root', db='rent_house')
 cursor = db.cursor()
+excel_path = 'D:/muye/学业/爬虫系统/实现/rent_house_test/excel_file/ziRu.xlsx'
+
+
+@app.route('/crawl', methods=['POST'])
+def crawl():
+    platform = request.json.get('platform')
+    if platform == "ziRu":
+        ziru_crawl()
+    elif platform == "lianJia":
+        lianJia_crawl()
+    elif platform == "woAiWoJia":
+        woAiWoJia_crawl()
+    else:
+        return jsonify({'error': "platform参数错误"})
+    return jsonify({'success': platform + "爬取完成"})
+
+
+@app.route('/export', methods=['POST'])
+def export():
+    platform = request.json.get('platform')
+    if platform == "ziRu":
+        df = pd.read_sql_query("SELECT * FROM ziru1", db)
+    elif platform == "lianJia":
+        df = pd.read_sql_query("SELECT * FROM lianjia", db)
+    elif platform == "woAiWoJia":
+        df = pd.read_sql_query("SELECT * FROM woaiwojia", db)
+    else:
+        return jsonify({'error': "platform参数错误"})
+
+    global excel_path
+    excel_path = 'D:/muye/学业/爬虫系统/实现/rent_house_test/excel_file/' + platform + '.xlsx'
+    df.to_excel(excel_path, index=False)
+    # return send_file(excel_path, as_attachment=True)
+    return jsonify({'download_url': 'http://127.0.0.1:5000/download'})
+
+@app.route('/download', methods=['GET'])
+def download_file():
+    global excel_path
+    print(excel_path)
+    # 检查文件是否存在
+    if os.path.exists(excel_path):
+        # 发送文件
+        return send_file(excel_path, as_attachment=True)
+    else:
+        # 文件路径不存在，返回错误响应
+        return "文件路径不存在", 404
+@app.route('/judgeIdentity', methods=['POST'])
+def judgeIdentity():
+    openId = request.json.get('openid')
+    # openId = request.args.get('openid')
+    # print(openId)
+    if not openId:
+        return jsonify({'error': 'Missing openId'}), 400
+    sql = 'SELECT openId FROM admin WHERE openId=%s'
+    try:
+        cursor.execute(sql, openId)
+        result = cursor.fetchall()
+        if result is None:
+            return jsonify({'flag': 'false'})
+        else:
+            return jsonify({'flag': 'true'})
+
+    except Exception as e:
+        print(f"An error occurred in judgeIdentity: {e}")
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/getData', methods=['GET'])
@@ -129,45 +196,13 @@ def getDataByArea_page():
         return jsonify({'error': 'Failed to retrieve data'}), 500
 
 
-@app.route('/export', methods=['GET'])
-def export():
-    area = request.args.get('area')  # 使用GET请求时，通过request.args获取参数
-    sql = "SELECT id, name, place, price, href, tag, square, img_src, source FROM house_info where area = %s"
-
-    try:
-        cursor.execute(sql, (area,))
-        result = cursor.fetchall()
-        if result is not None:
-            column_names = [column_name[0] for column_name in cursor.description]
-            df = pd.DataFrame(result, columns=column_names)
-            # df = pd.DataFrame(result)
-            # 使用BytesIO来存储Excel文件
-            # BytesIO创建一个内存中的文件流
-            excel_stream = BytesIO()
-            df.to_excel(excel_stream, index=False, engine='openpyxl')
-            # df.to_excel('output.xlsx', index=False, engine='openpyxl')
-            # 重置文件指针到开始
-            excel_stream.seek(0)
-
-            # # 设置响应
-            # response = make_response(excel_stream.read())
-            # response.headers['Content-Disposition'] = f'attachment; filename={area}-租房信息.xlsx'.encode('utf-8')
-            # response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            # return response
-            return send_file(excel_stream, attachment_filename='data.xlsx', as_attachment=True)
-
-    except Exception as e:
-        print(f"An error occurred in getData: {e}")
-        return jsonify({'error': str(e)}), 500
-
-
 @app.route('/findData', methods=['GET'])
 def findData():
     word = request.args.get('word')
     word = '%' + word + '%'
-    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s"
+    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s OR place LIKE %s OR tag LIKE %s"
     try:
-        cursor.execute(sql, word)
+        cursor.execute(sql, (word, word, word))
         result = cursor.fetchall()
         if result is not None:
             items_dict = [

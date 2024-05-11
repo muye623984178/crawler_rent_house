@@ -62,6 +62,59 @@ headers = {
                   'Safari/537.36 SLBrowser/9.0.3.1311 SLBChan/25'
 }
 
+area_ziru = ['北京', '上海', '深圳', '杭州', '南京',
+             '成都', '武汉', '广州', '天津', '苏州']
+dict_ziru = {
+    '北京': 'https://www.ziroom.com/z/',
+    '上海': 'https://sh.ziroom.com/z/',
+    '深圳': 'https://sz.ziroom.com/z/',
+    '杭州': 'https://hz.ziroom.com/z/',
+    '南京': 'https://nj.ziroom.com/z/',
+    '成都': 'https://cd.ziroom.com/z/',
+    '武汉': 'https://wh.ziroom.com/z/',
+    '广州': 'https://gz.ziroom.com/z/',
+    '天津': 'https://tj.ziroom.com/z/',
+    '苏州': 'https://su.ziroom.com/z/'
+}
+
+area_lianjia = ['北京', '上海', '深圳', '杭州', '南京',
+                '成都', '武汉', '广州', '天津', '台州']
+dict_lianjia = {
+    '北京': 'https://bj.lianjia.com/zufang/',
+    '上海': 'https://sh.lianjia.com/zufang/',
+    '深圳': 'https://sz.lianjia.com/zufang/',
+    '杭州': 'https://hz.lianjia.com/zufang/',
+    '南京': 'https://nj.lianjia.com/zufang/',
+    '成都': 'https://cd.lianjia.com/zufang/',
+    '武汉': 'https://wh.lianjia.com/zufang/',
+    '广州': 'https://gz.lianjia.com/zufang/',
+    '天津': 'https://tj.lianjia.com/zufang/',
+    '台州': 'https://taizhou.lianjia.com/zufang/'
+}
+
+area_5ai5jia = ['北京', '上海', '无锡', '杭州', '南京',
+                '成都', '郑州', '常州', '天津', '苏州',
+                '南昌', '太原']
+dict_5ai5jia = {
+    '北京': 'https://bj.5i5j.com/zufang/',
+    '上海': 'https://sh.5i5j.com/zufang/',
+    '无锡': 'https://wx.5i5j.com/zufang/',
+    '杭州': 'https://hz.5i5j.com/zufang/',
+    '南京': 'https://nj.5i5j.com/zufang/',
+    '成都': 'https://cd.5i5j.com/zufang/',
+    '郑州': 'https://zz.5i5j.com/zufang/',
+    '常州': 'https://cz.5i5j.com/zufang/',
+    '天津': 'https://tj.5i5j.com/zufang/',
+    '苏州': 'https://sz.5i5j.com/zufang/',
+    '南昌': 'https://nc.5i5j.com/zufang/',
+    '太原': 'https://ty.5i5j.com/zufang/'
+}
+
+all_area = ['北京', '上海', '无锡', '杭州', '南京',
+            '成都', '郑州', '常州', '天津', '苏州',
+            '南昌', '太原', '深圳', '苏州', '台州',
+            '广州', '武汉']
+
 
 # 若存在图片型价格，数字由图片偏移量确定
 def get_price_by_ocr(html, ocr):
@@ -76,11 +129,8 @@ def get_price_by_ocr(html, ocr):
 
 # 获取自如网站的房屋信息
 def get_ziru_house(url, ocr):
-    # print(url)
     htm = requests.get(url, headers=headers).content.decode('UTF-8')
-    print(htm)
     html = etree.HTML(htm)
-    # print(html)
     house_list = html.xpath('//div[@class="Z_list-box"]//div[@class="item"]')
     print(house_list)
     all_house = []
@@ -197,7 +247,7 @@ def get_5a5j_house(url, area):
     driver = webdriver.Chrome(options=option)
 
     driver.get(url)
-    time.sleep(3)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
+    time.sleep(2)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
 
     name_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]//li//div[@class="listCon"]/h3/a')
     name = [p.text for p in name_list][:-1]
@@ -208,8 +258,6 @@ def get_5a5j_house(url, area):
         q = p.get_attribute('src')
         if q is None:
             img_src.append("None")
-            print(url)
-            print(name)
             continue
         if "5i5j.com" in q or "aihome365.cn" in q:
             img_src.append(q)
@@ -226,14 +274,14 @@ def get_5a5j_house(url, area):
     scale = []
     square = []
     floor = []
-    # decorate = []
+    decorate = []
 
     for i in info:
         i = i.split('·')
         scale.append(i[0].replace(" ", ""))
         square.append(i[1].replace(" ", ""))
         floor.append(i[3].replace(" ", ""))
-        # decorate.append(i[4].replace(" ", ""))
+        decorate.append(i[4].replace(" ", ""))
     tags_list = driver.find_elements_by_xpath('//div[@class="listCon"]/div[@class="listTag rentListTag"]')
     tags = []
     for p in tags_list:
@@ -251,7 +299,7 @@ def get_5a5j_house(url, area):
                 'place': place[j],
                 'scale': scale[j],
                 'floor': floor[j],
-                # 'decorate': decorate[j],
+                'decorate': decorate[j],
                 'href': href[j],
                 'img_src': img_src[j],
                 'tag': tags[j],
@@ -286,7 +334,7 @@ def get_ziru_house_new(url, ocr, area):
       """
     })
     driver.get(url)
-    time.sleep(3)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
+    time.sleep(2)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
     # 爬取可以简单获取的房屋信息
     name_list = driver.find_elements_by_xpath('//div[@class="item"]/div[@class="info-box"]/h5/a')
     name = [p.text for p in name_list][:-1]
@@ -390,195 +438,46 @@ def get_ziru_house_new(url, ocr, area):
     return all_house
 
 
-if __name__ == '__main__':
+def ziru_crawl():
     ocr = ddddocr.DdddOcr()  # ocr识别需要开启
-
-    area_ziru = ['北京', '上海', '深圳', '杭州', '南京',
-                 '成都', '武汉', '广州', '天津', '苏州']
-    dict_ziru = {
-        '北京': 'https://www.ziroom.com/z/',
-        '上海': 'https://sh.ziroom.com/z/',
-        '深圳': 'https://sz.ziroom.com/z/',
-        '杭州': 'https://hz.ziroom.com/z/',
-        '南京': 'https://nj.ziroom.com/z/',
-        '成都': 'https://cd.ziroom.com/z/',
-        '武汉': 'https://wh.ziroom.com/z/',
-        '广州': 'https://gz.ziroom.com/z/',
-        '天津': 'https://tj.ziroom.com/z/',
-        '苏州': 'https://su.ziroom.com/z/'
-    }
-
-    area_lianjia = ['北京', '上海', '深圳', '杭州', '南京',
-                    '成都', '武汉', '广州', '天津', '台州']
-    dict_lianjia = {
-        '北京': 'https://bj.lianjia.com/zufang/',
-        '上海': 'https://sh.lianjia.com/zufang/',
-        '深圳': 'https://sz.lianjia.com/zufang/',
-        '杭州': 'https://hz.lianjia.com/zufang/',
-        '南京': 'https://nj.lianjia.com/zufang/',
-        '成都': 'https://cd.lianjia.com/zufang/',
-        '武汉': 'https://wh.lianjia.com/zufang/',
-        '广州': 'https://gz.lianjia.com/zufang/',
-        '天津': 'https://tj.lianjia.com/zufang/',
-        '台州': 'https://taizhou.lianjia.com/zufang/'
-    }
-
-    area_5ai5jia = ['北京', '上海', '无锡', '杭州', '南京',
-                    '成都', '郑州', '常州', '天津', '苏州',
-                    '南昌', '太原']
-    dict_5ai5jia = {
-        '北京': 'https://bj.5i5j.com/zufang/',
-        '上海': 'https://sh.5i5j.com/zufang/',
-        '无锡': 'https://wx.5i5j.com/zufang/',
-        '杭州': 'https://hz.5i5j.com/zufang/',
-        '南京': 'https://nj.5i5j.com/zufang/',
-        '成都': 'https://cd.5i5j.com/zufang/',
-        '郑州': 'https://zz.5i5j.com/zufang/',
-        '常州': 'https://cz.5i5j.com/zufang/',
-        '天津': 'https://tj.5i5j.com/zufang/',
-        '苏州': 'https://sz.5i5j.com/zufang/',
-        '南昌': 'https://nc.5i5j.com/zufang/',
-        '太原': 'https://ty.5i5j.com/zufang/'
-    }
-
-    all_area = ['北京', '上海', '无锡', '杭州', '南京',
-                '成都', '郑州', '常州', '天津', '苏州',
-                '南昌', '太原', '深圳', '苏州', '台州',
-                '广州', '武汉']
-
     for area in all_area:
-        # flag标志是否爬取
-        flag1 = False
-        flag2 = False
-        flag3 = False
+        print('爬取区域' + area + '中')
+        if area in area_ziru:
+            ziru = dict_ziru[area]
+            get_ziru_house_new(ziru, ocr, area)
+            print(area + "自如---第1页爬取完成")
+            for i in range(2, 5):
+                new_ziru = ziru + "p" + str(i) + "-q973975531142397953-q973975531142397953/"
+                if get_ziru_house_new(new_ziru, ocr, area):
+                    print(area + "自如---第" + str(i) + "页爬取完成")
+                else:
+                    print("!!!error" + area + "自如---第" + str(i) + "页爬取失败")
+
+
+def lianJia_crawl():
+    for area in all_area:
         print('爬取区域' + area + '中')
         if area in area_lianjia:
             lianjia = dict_lianjia[area]
             get_lianjia_house(lianjia, area)
             print(area + "链家---第1页爬取完成")
-            flag1 = True
-        if area in area_5ai5jia:
-            wojia = dict_5ai5jia[area]
-            get_5a5j_house(wojia, area)
-            print(area + "我爱我家---第1页爬取完成")
-            flag2 = True
-        if area in area_ziru:
-            ziru = dict_ziru[area]
-            get_ziru_house_new(ziru, ocr, area)
-            print(area + "自如---第1页爬取完成")
-            flag3 = True
-
-        # 测试单页爬取
-        # i = 2
-        # new_ziru = ziru + "p" + str(i) + "-q962499368544165889-a962499368544165889/"
-        # new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
-        # new_wojia = wojia + "n" + str(i) + "/"
-        # get_lianjia_house(new_lianjia)
-        # print("链家---第" + str(i) + "页爬取完成")
-        # get_5a5j_house(new_wojia)
-        # print("我爱我家---第" + str(i) + "页爬取完成")
-        # get_ziru_house_new(new_ziru, ocr)
-        # print("自如---第" + str(i) + "页爬取完成")
-
-
-        # 测试多页爬取
-        for i in range(2, 4):
-            if flag1:
+            for i in range(2, 5):
                 new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
                 if get_lianjia_house(new_lianjia, area):
                     print(area + "链家---第" + str(i) + "页爬取完成")
                 else:
-                    flag1 = False
+                    print("!!!error" + area + "链家---第" + str(i) + "页爬取失败")
 
-            if flag2:
-                new_wojia = wojia + "n" + str(i) + "/"
-                if get_5a5j_house(new_wojia, area):
-                    print(area + "我爱我家---第" + str(i) + "页爬取完成")
-                else:
-                    flag2 = False
 
-            # if flag3:
-            #     new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
-            #     if get_ziru_house_new(new_ziru, ocr):
-            #         print("自如---第" + str(i) + "页爬取完成")
-            #     else:
-            #         flag3 = False
-
-            if not flag1 and not flag2:
-                break
-
-        for i in range(2, 4):
-            if flag3:
-                new_ziru = ziru + "p" + str(i) + "-q962855554269671425-a962855554269671425/"
-                if get_ziru_house_new(new_ziru, ocr, area):
-                    print(area + "自如---第" + str(i) + "页爬取完成")
-                else:
-                    flag3 = False
+def woAiWoJia_crawl():
+    for area in all_area:
+        print('爬取区域' + area + '中')
+        wojia = dict_5ai5jia[area]
+        get_5a5j_house(wojia, area)
+        print(area + "我爱我家---第1页爬取完成")
+        for i in range(2, 5):
+            new_wojia = wojia + "n" + str(i) + "/"
+            if get_5a5j_house(new_wojia, area):
+                print(area + "我爱我家---第" + str(i) + "页爬取完成")
             else:
-                break
-
-#   区域指定杭州的爬取
-# if __name__ == '__main__':
-#     ocr = ddddocr.DdddOcr()  # ocr识别需要开启
-#     ziru = "http://hz.ziroom.com/z/"
-#     lianjia = "https://hz.lianjia.com/zufang/"
-#     wojia = "https://hz.5i5j.com/zufang/"
-#
-#     get_lianjia_house(lianjia)
-#     print("链家---第1页爬取完成")
-#     get_5a5j_house(wojia)
-#     print("我爱我家---第1页爬取完成")
-#     get_ziru_house_new(ziru, ocr)
-#     print("自如---第1页爬取完成")
-#
-#     # 测试单页爬取
-#     # i = 2
-#     # new_ziru = ziru + "p" + str(i) + "-q962499368544165889-a962499368544165889/"
-#     # new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
-#     # new_wojia = wojia + "n" + str(i) + "/"
-#     # get_lianjia_house(new_lianjia)
-#     # print("链家---第" + str(i) + "页爬取完成")
-#     # get_5a5j_house(new_wojia)
-#     # print("我爱我家---第" + str(i) + "页爬取完成")
-#     # get_ziru_house_new(new_ziru, ocr)
-#     # print("自如---第" + str(i) + "页爬取完成")
-#
-#     # flag标志是否爬取
-#     flag1 = True
-#     flag2 = True
-#     flag3 = True
-#     # 测试多页爬取
-#     for i in range(2, 6):
-#         if flag1:
-#             new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
-#             if get_lianjia_house(new_lianjia):
-#                 print("链家---第" + str(i) + "页爬取完成")
-#             else:
-#                 flag1 = False
-#
-#         if flag2:
-#             new_wojia = wojia + "n" + str(i) + "/"
-#             if get_5a5j_house(new_wojia):
-#                 print("我爱我家---第" + str(i) + "页爬取完成")
-#             else:
-#                 flag2 = False
-#
-#         # if flag3:
-#         #     new_ziru = ziru + "p" + str(i) + "-q961410684041994241-a961410684041994241/"
-#         #     if get_ziru_house_new(new_ziru, ocr):
-#         #         print("自如---第" + str(i) + "页爬取完成")
-#         #     else:
-#         #         flag3 = False
-#
-#         if not flag1 and not flag2:
-#             break
-#
-#     for i in range(2, 6):
-#         if flag3:
-#             new_ziru = ziru + "p" + str(i) + "-q962855554269671425-a962855554269671425/"
-#             if get_ziru_house_new(new_ziru, ocr):
-#                 print("自如---第" + str(i) + "页爬取完成")
-#             else:
-#                 flag3 = False
-#         else:
-#             break
+                print("!!!error" + area + "我爱我家---第" + str(i) + "页爬取失败")
