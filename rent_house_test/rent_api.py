@@ -306,5 +306,22 @@ def judgeStore():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/refresh', methods=['GET'])
+def refresh():
+    sql = 'SELECT href FROM house_info'
+    try:
+        cursor.execute(sql)
+        result = cursor.fetchall()
+        if result is None:
+            return "None"
+        else:
+            for item in result:
+                print(item)
+            return jsonify()
+
+    except Exception as e:
+        print(f"An error occurred in refresh: {e}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

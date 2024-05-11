@@ -55,6 +55,18 @@ class MysqlTool:
             self.mysql_conn.rollback()
             raise e
 
+    def fetchone(self, sql: str, args: tuple = None) -> any:
+        # 执行 SQL 语句并获取单条记录
+        try:
+            with self.mysql_conn.cursor() as cursor:
+                cursor.execute(sql, args)
+                result = cursor.fetchone()
+                return result
+        except Exception as e:
+            print(f"执行 SQL 语句出错：{e}")
+            self.mysql_conn.rollback()
+            raise e
+
 
 # 设定请求头
 headers = {
@@ -91,10 +103,11 @@ dict_lianjia = {
     '天津': 'https://tj.lianjia.com/zufang/',
     '台州': 'https://taizhou.lianjia.com/zufang/'
 }
-
+# area_5ai5jia = ['南昌', '太原']
 area_5ai5jia = ['北京', '上海', '无锡', '杭州', '南京',
-                '成都', '郑州', '常州', '天津', '苏州',
+                '郑州', '常州', '天津', '苏州',
                 '南昌', '太原']
+# 成都最近无法访问
 dict_5ai5jia = {
     '北京': 'https://bj.5i5j.com/zufang/',
     '上海': 'https://sh.5i5j.com/zufang/',
@@ -230,10 +243,17 @@ def get_lianjia_house(url, area):
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO house_info(name, price, square, place, tag, href, img_src, source, area) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, '链家', %s)")
-            args = (name, price, square, place, tags, href, img_src, area)
-            db.execute(sql, args, commit=True)
+            select_sql = "SELECT COUNT(*) FROM lianjia WHERE href = %s"
+            select_arg = href
+            count = db.fetchone(select_sql, select_arg)[0]
+            if count == 0:
+                sql = (
+                    "INSERT INTO lianjia(name, price, square, place, tag, href, img_src, area, scale, direction) VALUES ("
+                    "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                args = (name, price, square, place, tags, href, img_src, area, scale, direction)
+                db.execute(sql, args, commit=True)
+            else:
+                continue
 
     return all_house
 
@@ -259,12 +279,14 @@ def get_5a5j_house(url, area):
         if q is None:
             img_src.append("None")
             continue
-        if "5i5j.com" in q or "aihome365.cn" in q:
+        if "5i5j.com" in q or "aihome365.cn" in q or "518erp" in q:
             img_src.append(q)
         elif "data:image/png" in q:
             img_src.append(p.get_attribute('data-src'))
         else:
             print("爬取图片链接出现未知错误" + p.get_attribute('title'))
+            img_src.append("None")
+
     price_list = driver.find_elements_by_xpath('//p[@class="redC"]/strong')
     price = [p.text for p in price_list][:-1]
     place_list = driver.find_elements_by_xpath('//div[@class="listX"]/p[2]')
@@ -275,13 +297,15 @@ def get_5a5j_house(url, area):
     square = []
     floor = []
     decorate = []
-
     for i in info:
         i = i.split('·')
         scale.append(i[0].replace(" ", ""))
         square.append(i[1].replace(" ", ""))
         floor.append(i[3].replace(" ", ""))
-        decorate.append(i[4].replace(" ", ""))
+        if len(i) == 5:
+            decorate.append(i[4].replace(" ", ""))
+        else:
+            decorate.append('')
     tags_list = driver.find_elements_by_xpath('//div[@class="listCon"]/div[@class="listTag rentListTag"]')
     tags = []
     for p in tags_list:
@@ -307,10 +331,19 @@ def get_5a5j_house(url, area):
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO house_info(name, price, square, place, href, img_src, tag, source, area) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, '我爱我家', %s)")
-            args = (name[j], price[j] + " 元/月", square[j], place[j], href[j], img_src[j], tags[j], area)
-            db.execute(sql, args, commit=True)
+            select_sql = "SELECT COUNT(*) FROM woaiwojia WHERE href = %s"
+            select_arg = (href[j])
+            count = db.fetchone(select_sql, select_arg)[0]
+            if count == 0:
+                sql = (
+                    "INSERT INTO woaiwojia(name, price, square, place, href, img_src, tag, area, scale, floor, decorate) VALUES ("
+                    "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                args = (name[j], price[j] + " 元/月", square[j], place[j], href[j], img_src[j], tags[j], area, scale[j],
+                        floor[j], decorate[j])
+                db.execute(sql, args, commit=True)
+            else:
+                continue
+
     return all_house
 
 
@@ -430,10 +463,19 @@ def get_ziru_house_new(url, ocr, area):
             }
             print(house_data)
             all_house.append(house_data)
-            sql = ("INSERT INTO house_info(name, price, square, place, tag, href, img_src, source,area) VALUES ("
-                   "%s, %s, %s, %s, %s, %s, %s, '自如', %s)")
-            args = (name[j], price[j] + " 元/月", square[j], place[j], tags[j], href[j], img_list[j], area)
-            db.execute(sql, args, commit=True)
+            select_sql = "SELECT COUNT(*) FROM ziru WHERE href = %s"
+            select_arg = (href[j])
+            count = db.fetchone(select_sql, select_arg)[0]
+            if count == 0:
+                sql = (
+                    "INSERT INTO ziru(name, price, square, place, tag, href, img_src, area, floor, direction) VALUES ("
+                    "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)")
+                args = (
+                    name[j], price[j] + " 元/月", square[j], place[j], tags[j], href[j], img_list[j], area, floor[j],
+                    direction[j])
+                db.execute(sql, args, commit=True)
+            else:
+                continue
     driver.quit()
     return all_house
 
@@ -472,12 +514,16 @@ def lianJia_crawl():
 def woAiWoJia_crawl():
     for area in all_area:
         print('爬取区域' + area + '中')
-        wojia = dict_5ai5jia[area]
-        get_5a5j_house(wojia, area)
-        print(area + "我爱我家---第1页爬取完成")
-        for i in range(2, 5):
-            new_wojia = wojia + "n" + str(i) + "/"
-            if get_5a5j_house(new_wojia, area):
-                print(area + "我爱我家---第" + str(i) + "页爬取完成")
-            else:
-                print("!!!error" + area + "我爱我家---第" + str(i) + "页爬取失败")
+        if area in area_5ai5jia:
+            wojia = dict_5ai5jia[area]
+            get_5a5j_house(wojia, area)
+            print(area + "我爱我家---第1页爬取完成")
+            for i in range(2, 5):
+                new_wojia = wojia + "n" + str(i) + "/"
+                if get_5a5j_house(new_wojia, area):
+                    print(area + "我爱我家---第" + str(i) + "页爬取完成")
+                else:
+                    print("!!!error" + area + "我爱我家---第" + str(i) + "页爬取失败")
+
+
+woAiWoJia_crawl()
