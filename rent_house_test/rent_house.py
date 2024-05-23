@@ -267,7 +267,7 @@ def get_5a5j_house(url, area):
     driver = webdriver.Chrome(options=option)
 
     driver.get(url)
-    time.sleep(2)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
+    time.sleep(2.5)  # 因为为js渲染的动态网页，所以必须强制等待其加载完毕
 
     name_list = driver.find_elements_by_xpath('//ul[@class="pList rentList"]//li//div[@class="listCon"]/h3/a')
     name = [p.text for p in name_list][:-1]
@@ -488,7 +488,7 @@ def ziru_crawl():
             ziru = dict_ziru[area]
             get_ziru_house_new(ziru, ocr, area)
             print(area + "自如---第1页爬取完成")
-            for i in range(2, 5):
+            for i in range(2, 3):
                 new_ziru = ziru + "p" + str(i) + "-q973975531142397953-q973975531142397953/"
                 if get_ziru_house_new(new_ziru, ocr, area):
                     print(area + "自如---第" + str(i) + "页爬取完成")
@@ -503,7 +503,7 @@ def lianJia_crawl():
             lianjia = dict_lianjia[area]
             get_lianjia_house(lianjia, area)
             print(area + "链家---第1页爬取完成")
-            for i in range(2, 5):
+            for i in range(2, 3):
                 new_lianjia = lianjia + "pg" + str(i) + "/#contentList"
                 if get_lianjia_house(new_lianjia, area):
                     print(area + "链家---第" + str(i) + "页爬取完成")
@@ -518,7 +518,7 @@ def woAiWoJia_crawl():
             wojia = dict_5ai5jia[area]
             get_5a5j_house(wojia, area)
             print(area + "我爱我家---第1页爬取完成")
-            for i in range(2, 5):
+            for i in range(2, 3):
                 new_wojia = wojia + "n" + str(i) + "/"
                 if get_5a5j_house(new_wojia, area):
                     print(area + "我爱我家---第" + str(i) + "页爬取完成")
@@ -526,4 +526,44 @@ def woAiWoJia_crawl():
                     print("!!!error" + area + "我爱我家---第" + str(i) + "页爬取失败")
 
 
-woAiWoJia_crawl()
+def process():
+    with MysqlTool() as db:
+        sql_ziru = """
+                INSERT INTO house_info (name, price, square, place, tag, href, img_src, area, floor, direction, source)
+                SELECT name, price, square, place, tag, href, img_src, area, floor, direction, '自如'
+                FROM ziru
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM house_info
+                    WHERE href = ziru.href
+                );
+                """
+        sql_lianjia = """
+                INSERT INTO house_info (name, price, square, place, tag, href, img_src, area, scale, direction, source)
+                SELECT name, price, square, place, tag, href, img_src, area, scale, direction, '链家'
+                FROM lianjia
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM house_info
+                    WHERE href = lianjia.href
+                );
+                """
+        sql_woaiwojia = """
+                        INSERT INTO house_info (name, price, square, place, href, img_src, tag, area, scale, floor, source)
+                        SELECT name, price, square, place, href, img_src, tag, area, scale, floor, '我爱我家'
+                        FROM woaiwojia
+                        WHERE NOT EXISTS (
+                            SELECT 1
+                            FROM house_info
+                            WHERE href = woaiwojia.href
+                        );
+                        """
+        db.execute(sql_ziru, commit=True)
+        db.execute(sql_lianjia, commit=True)
+        db.execute(sql_woaiwojia, commit=True)
+
+
+
+
+
+

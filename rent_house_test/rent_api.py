@@ -1,3 +1,4 @@
+import logging
 import os
 from io import BytesIO
 
@@ -6,7 +7,7 @@ from flask import Flask, request, jsonify, make_response, send_file
 import pymysql
 from openpyxl import Workbook
 import pandas as pd
-from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl
+from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl, process
 
 app = Flask(__name__)
 
@@ -57,6 +58,10 @@ def crawl():
         lianJia_crawl()
     elif platform == "woAiWoJia":
         woAiWoJia_crawl()
+    elif platform == "all":
+        woAiWoJia_crawl()
+        lianJia_crawl()
+        ziru_crawl()
     else:
         return jsonify({'error': "platform参数错误"})
     return jsonify({'success': platform + "爬取完成"})
@@ -71,6 +76,8 @@ def export():
         df = pd.read_sql_query("SELECT * FROM lianjia", db)
     elif platform == "woAiWoJia":
         df = pd.read_sql_query("SELECT * FROM woaiwojia", db)
+    elif platform == "all":
+        df = pd.read_sql_query("SELECT * FROM house_info", db)
     else:
         return jsonify({'error': "platform参数错误"})
 
@@ -79,6 +86,7 @@ def export():
     df.to_excel(excel_path, index=False)
     # return send_file(excel_path, as_attachment=True)
     return jsonify({'download_url': 'http://127.0.0.1:5000/download'})
+
 
 @app.route('/download', methods=['GET'])
 def download_file():
@@ -91,6 +99,8 @@ def download_file():
     else:
         # 文件路径不存在，返回错误响应
         return "文件路径不存在", 404
+
+
 @app.route('/judgeIdentity', methods=['POST'])
 def judgeIdentity():
     openId = request.json.get('openid')
@@ -111,6 +121,11 @@ def judgeIdentity():
         print(f"An error occurred in judgeIdentity: {e}")
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/processData', methods=['POST'])
+def processData():
+    process()
+    return jsonify({'success': 'successfully processing data'})
 
 @app.route('/getData', methods=['GET'])
 def getData():
@@ -180,15 +195,16 @@ def getDataByArea_page():
 
     try:
         # 执行SQL查询
-        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id FROM house_info WHERE area=%s"
+        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id, floor, scale, direction FROM house_info WHERE area=%s"
                "LIMIT %s OFFSET %s")
         cursor.execute(sql, (area, per_page, offset))
         result = cursor.fetchall()
         if result is not None:
+            # print(result)
             items_dict = [
                 {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
                  'square': item[5],
-                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10], 'direction': item[11]} for item in result]
             return jsonify(items_dict)
     except Exception as e:
         # 处理异常
@@ -199,10 +215,11 @@ def getDataByArea_page():
 @app.route('/findData', methods=['GET'])
 def findData():
     word = request.args.get('word')
+    area = request.args.get('area')
     word = '%' + word + '%'
-    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s OR place LIKE %s OR tag LIKE %s"
+    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s OR place LIKE %s OR tag LIKE %s AND area = %s"
     try:
-        cursor.execute(sql, (word, word, word))
+        cursor.execute(sql, (word, word, word,area))
         result = cursor.fetchall()
         if result is not None:
             items_dict = [
@@ -223,7 +240,7 @@ def getStoreData():
     if not openId:
         return jsonify({'error': 'Missing openId'}), 400
     sql = ('SELECT house_info.name, house_info.price, house_info.square, house_info.place, house_info.tag, '
-           'house_info.href, house_info.img_src, house_info.source, house_info.id FROM house_info,store_info WHERE '
+           'house_info.href, house_info.img_src, house_info.source, house_info.id, house_info.floor, house_info.scale, house_info.direction FROM house_info,store_info WHERE '
            'userId = %s AND '
            'house_info.`id` = store_info.`houseId`')
     try:
@@ -233,7 +250,9 @@ def getStoreData():
             items_dict = [
                 {'name': item[0], 'place': item[3], 'price': item[1], 'href': item[5], 'tag': item[4],
                  'square': item[2],
-                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10],
+                 'direction': item[11]} for item in result]
+
             # print(items_dict)
             return jsonify(items_dict)
         else:
@@ -306,22 +325,63 @@ def judgeStore():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/refresh', methods=['GET'])
+@app.route('/refresh', methods=['POST'])
 def refresh():
-    sql = 'SELECT href FROM house_info'
+    platform = request.json.get('platform')
+    if platform == "ziRu":
+        sql_all = 'SELECT href FROM house_info WHERE source = "自如"'
+        sql_platform = 'SELECT href FROM ziru'
+    elif platform == "lianJia":
+        sql_all = 'SELECT href FROM house_info WHERE source = "链家"'
+        sql_platform = 'SELECT href FROM lianjia'
+    elif platform == "woAiWoJia":
+        sql_all = 'SELECT href FROM house_info WHERE source = "我爱我家"'
+        sql_platform = 'SELECT href FROM woaiwojia'
+    elif platform == "all":
+        sql_all = 'SELECT href FROM house_info '
+        sql_platform = """SELECT woaiwojia.`href`
+                        FROM woaiwojia
+                        UNION ALL
+                        SELECT ziru.`href`
+                        FROM ziru
+                        UNION ALL
+                        SELECT lianjia.`href`
+                        FROM lianjia;"""
+    else:
+        return jsonify({'error': "platform参数错误"})
+    sql_all = 'SELECT href FROM house_info WHERE source = "自如"'
+    sql_platform = 'SELECT href FROM ziru'
+    cursor.execute(sql_all)
+    allResult = cursor.fetchall()
+    cursor.execute(sql_platform)
+    platformResult = cursor.fetchall()
+    platform_list = [t[0] for t in platformResult]
+    all_list = [t[0] for t in allResult]
+    for item in all_list:
+        if item not in platform_list:
+            print(item)
+            sql = 'LOCK TABLES house_info WRITE;DELETE FROM house_info WHERE href = %s ;UNLOCK TABLES;'
+            cursor.execute(sql, item)
+    return jsonify({'success': 'successfully refresh'})
+
+
+@app.route('/getName', methods=['POST'])
+def getName():
+    openId = request.json.get('openid')
+    # openId = request.args.get('openid')
+    print(openId)
+    if not openId:
+        return jsonify({'error': 'Missing openId'}), 400
+    sql = 'SELECT name FROM admin WHERE openId=%s'
     try:
-        cursor.execute(sql)
-        result = cursor.fetchall()
-        if result is None:
-            return "None"
-        else:
-            for item in result:
-                print(item)
-            return jsonify()
+        cursor.execute(sql, openId)
+        result = cursor.fetchone()
+        return jsonify({'name': result})
 
     except Exception as e:
-        print(f"An error occurred in refresh: {e}")
+        print(f"An error occurred in getName: {e}")
         return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
