@@ -1,0 +1,36 @@
+<!--pages/admin/admin.wxml-->
+<view  style="width: 750rpx; height: 127rpx; display: block; box-sizing: border-box">
+  <text style="position: relative; font-size:x-large; font-weight: bold; left: 31rpx; top: 35rpx">欢迎您回来，{{name}}管理员</text>
+  </view>
+<view>
+  <view class="item" style="width: 750rpx; height: 350rpx; display: block; box-sizing: border-box">
+  <text style="font-size: large; font-weight: bold ;position: relative; left: 38rpx; top: 17rpx">一键完成</text>
+  <button class="operation_button" data-platform="all" bind:tap="crawl" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: -169rpx; top: 50rpx; position: relative">爬取数据</button>
+  <button class="operation_button" data-platform="all" bind:tap="refresh" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: -169rpx; top: 75rpx; position: relative">更新房源</button>
+  <button class="operation_button" data-platform="all" bind:tap="export" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: 146rpx; top: -3rpx; position: relative">导出信息</button>
+<button class="operation_button"  bind:tap="processData" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: 146rpx; top: -183rpx; position: relative">数据处理</button>
+
+  </view>
+  <view class="item" style="width: 750rpx; font-weight: bold ;height: 357rpx; display: block; box-sizing: border-box">
+  <text style="font-size: large; position: relative; left: 38rpx; top: 17rpx">自如平台数据操作</text>
+  <button class="operation_button" data-platform="ziRu" bind:tap="crawl" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: -169rpx; top: 50rpx; position: relative">爬取数据</button>
+  <button class="operation_button" data-platform="ziRu" bind:tap="refresh" style="width: 315rpx; height: 78rpx; display: block; box-sizing: border-box; left: -15rpx; top: 78rpx; position: relative">更新房源</button>
+  <button class="operation_button" data-platform="ziRu" bind:tap="export" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: 143rpx; top: -106rpx; position: relative">导出信息</button>
+  </view>
+<view class="item" style="width: 750rpx; height: 361rpx; display: block; box-sizing: border-box">
+  <text style="font-size: large; font-weight: bold ;position: relative; left: 38rpx; top: 17rpx">链家平台数据操作</text>
+  <button class="operation_button" data-platform="lianJia" bind:tap="crawl" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: -169rpx; top: 50rpx; position: relative">爬取数据</button>
+  <button class="operation_button" data-platform="lianJia" bind:tap="refresh" style="width: 315rpx; height: 78rpx; display: block; box-sizing: border-box; left: -15rpx; top: 78rpx; position: relative">更新房源</button>
+  <button class="operation_button" data-platform="lianJia" bind:tap="export" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: 143rpx; top: -106rpx; position: relative">导出信息</button>
+  </view>
+<view class="item" style="width: 750rpx; height: 364rpx; display: block; box-sizing: border-box">
+  <text style="font-size: large; font-weight: bold ;position: relative; left: 38rpx; top: 17rpx">我爱我家平台数据操作</text>
+  <button class="operation_button" data-platform="woAiWoJia" bind:tap="crawl" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: -169rpx; top: 50rpx; position: relative">爬取数据</button>
+  <button class="operation_button" data-platform="woAiWoJia" bind:tap="refresh" style="width: 315rpx; height: 78rpx; display: block; box-sizing: border-box; left: -15rpx; top: 78rpx; position: relative">更新房源</button>
+  <button class="operation_button" data-platform="woAiWoJia" bind:tap="export" style="width: 233rpx; height: 78rpx; display: block; box-sizing: border-box; left: 143rpx; top: -106rpx; position: relative">导出信息</button>
+  </view>
+  <view style="background-color: green; width: 750rpx; height: 68rpx; display: block; box-sizing: border-box; position: fixed; bottom: 20px; right: 20px; left: 0rpx; top: 1114rpx">
+    <text style="font-size: large; ">系统状态：{{statu}}</text>
+  </view>
+  
+</view>

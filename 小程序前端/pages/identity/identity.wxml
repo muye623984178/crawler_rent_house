@@ -1,0 +1,5 @@
+<!--pages/identity/identity.wxml-->
+<text class="user_identity" style="position: relative; left: 225rpx; top: 216rpx">登录身份</text>
+<button class="identity_button" bind:tap="toUser" style="position: relative; left: 0rpx; top: 395rpx; width: 366rpx; height: 99rpx; display: block; box-sizing: border-box">用户</button>
+<button class="identity_button" bind:tap="toAdmin" style="position: relative; left: 0rpx; top: 547rpx; width: 366rpx; height: 99rpx; display: block; box-sizing: border-box">管理员</button>
+

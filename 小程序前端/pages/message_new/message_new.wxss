@@ -1,0 +1,69 @@
+/* pages/message_new/message_new.wxss */
+.container {  
+  display: flex;  
+  flex-direction: column;  
+  align-items: center;  
+  justify-content: center;  
+  padding: 20rpx;  
+}  
+  
+
+.house-item {  
+  border: 1px solid #ccc; /* 设置边框为1像素宽，实线，颜色为#ccc */  
+  background-color: #48b4b4; /* 设置背景色为皮肤色，这里只是一个示例值，您可以根据需要调整 */  
+}
+
+.ellipsis {  
+  width: 100%; /* 或具体宽度 */  
+  overflow: hidden; /* 隐藏超出容器的文本 */  
+  text-overflow: ellipsis; /* 文本溢出时显示省略号 */  
+  white-space: nowrap; /* 防止文本换行 */  
+  box-sizing: border-box; /* 确保padding和border不会增加元素的总宽度和高度 */  
+}
+
+.clamp-lines-2 {  
+  display: -webkit-box;  
+  -webkit-line-clamp: 2; /* 显示2行 */  
+  -webkit-box-orient: vertical; /* 设置盒子子元素的排列方式 */  
+  overflow: hidden; /* 隐藏超出部分 */  
+  text-overflow: ellipsis; /* 超出部分用省略号表示 */  
+  word-break: break-all; /* 防止长单词溢出 */  
+  white-space: normal; /* 允许文本换行 */  
+}
+
+.favorite-btn {  
+  width: 20rpx;  
+  height: 40rpx;  
+  line-height: 20rpx;  
+  text-align: center;  
+  border: none;  
+  border-radius: 50%;  
+  background-color: #ff5733;  
+  color: #ffffff;  
+  font-size: 26rpx;  
+  margin-top: 20rpx;  
+}  
+  
+.favorite-icon {  
+  font-size: 26rpx;  
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 50px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 5px;
+  margin: 10px;
+  position: absolute;
+  
+}
+
+.export-icon {
+  margin-right: 0px;
+  font-size: small;
+  position: absolute;
+}

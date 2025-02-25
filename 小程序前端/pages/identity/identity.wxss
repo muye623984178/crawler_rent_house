@@ -1,0 +1,9 @@
+/* pages/identity/identity.wxss */
+.user_identity{
+  margin-right: 0px;
+  font-size:xx-large;
+}
+
+.identity_button{
+  background-color: rgb(26, 161, 26);
+}

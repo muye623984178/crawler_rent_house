@@ -1,0 +1,13 @@
+/* pages/admin/admin.wxss */
+.operation_button{
+  background-color: indianred;
+  font-size: x-small;
+}
+.item{
+  border: 5px solid #ccc; /* 灰色边框线 */
+  border-radius: 20px; /* 椭圆边角 */
+}
+
+.item:not(:last-child) {
+  margin-bottom: 20px; /* 垂直间距 */
+}

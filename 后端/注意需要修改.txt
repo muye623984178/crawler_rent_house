@@ -1,0 +1,7 @@
+rent_api.py中的
+1.excel_path = 'D:/muye/学业/爬虫系统/实现/rent_house_test/excel_file/' + platform + '.xlsx'
+2.APPID = 'appid'与SECRET = 'secret'
+
+rent_house.py
+
+1.数据库配置改成自己的

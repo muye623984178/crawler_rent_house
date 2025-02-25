@@ -1,0 +1,4 @@
+<!--pages/jump/jump.wxml-->
+<view class="container">  
+  <web-view src="{{webViewUrl}}" bindload="onWebViewLoad" binderror="onWebViewError"></web-view>  
+</view>

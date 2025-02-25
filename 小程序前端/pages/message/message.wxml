@@ -1,0 +1,38 @@
+<view style="position: fixed;width: 100%;top: 0px;z-index: 999;">
+  <view style="width: 750rpx; height: 80rpx; display: block; box-sizing: border-box; background-color: rgb(255, 255, 255);">
+    <input class="search" style="background-color: rgb(207, 202, 202); color: black; width: 500rpx; height: 70rpx; display: block; box-sizing: border-box; border: 1px solid #ccc; border-radius: 15px;" type="text" model:value="{{searchInfo}}" bindinput="onInput"/>
+    <button style="width: 176rpx; height: 80rpx; display: block; box-sizing: border-box; left: 258rpx; top: -80rpx; position: relative; background-color:rgb(207, 202, 202); font-size: smaller;" bindtap="findData">搜索</button>
+  </view>
+
+<!-- 特定地点选择器 -->
+<picker mode="selector" bindchange="onPlaceChange" range="{{places}}" style="width: 750rpx; height: 80rpx; display: block; box-sizing: border-box; position: fixed; top: 80rpx; background-color: rgb(253, 253, 253); left: 0rpx">
+  <view style="width: 549rpx; height: 66rpx; display: flex; align-items: center; padding: 0 20rpx; box-sizing: border-box; left: 29rpx; top: 15rpx; position: relative">
+    <text style="color: black;">选择地点：</text>
+    <text style="color: rgb(2, 2, 8);">{{selectedPlace}}</text>
+  </view>
+</picker>
+</view>
+<view class="house-list" style="margin-top: 170rpx;">
+  <scroll-view scroll-y="true" bindreachbottom="onReachBottom" style="margin-top: 180rpx;z-index: -1;" enable-passive="{{ true }}">
+  <block wx:for="{{houseItems}}" wx:key="houseId" style="box-sizing: border-box;">
+    <view class="house-item" bindtap="goToHouseDetail" data-house-id="{{item.houseId}}" data-href="{{item.href}}" style="width: 100%; display: block; box-sizing: border-box; left: 0rpx; top: 0rpx;height: 510rpx;">
+      <view class="house-name ellipsis" style="width: 352rpx; height: 52rpx; display: block; box-sizing: border-box; left: 352rpx; top: 15rpx; font-size: medium; position: relative; font-weight: bold;">{{item.name}}</view>
+      <view class="house-place clamp-lines-2"  style="position: relative; left: 352rpx; top: 75rpx; width: 352rpx; height: 99rpx; display: -webkit-box; box-sizing: border-box; font-size: xx-small">{{item.place}}</view>
+      <view class="house-price ellipsis" style="position: relative; width: 397rpx; height: 50rpx; display: block; box-sizing: border-box; left: 352rpx; top: 75rpx; color: rgb(206, 16, 16); font-weight: bold;">{{item.price}}</view>
+      <view class="house-square"  style="width: 352rpx; height: 52rpx; display: block; box-sizing: border-box; position: relative; left: 352rpx; top: -125rpx; font-size: xx-small">
+        <text wx:if="{{item.source === '自如'}}">{{item.square}}|{{item.direction}}|{{item.floor}}</text>
+        <text wx:elif="{{item.source === '链家'}}">{{item.square}}|{{item.direction}}|{{item.scale}}</text>
+        <text wx:elif="{{item.source === '我爱我家'}}">{{item.square}}|{{item.scale}}|{{item.floor}}</text>
+      </view>
+    
+      <view class="house-tags" style="width: 310rpx; height: 52rpx; display: block; box-sizing: border-box; left: 352rpx; top: 50rpx; font-size: xx-small; position: relative">{{item.tag}}</view>
+      <view class="house-source" style="width: 197rpx; height: 55rpx; display: block; box-sizing: border-box; left: 71rpx; top: 102rpx; background-color: rgb(175, 165, 161); position: relative; text-align: center">{{item.source}}</view>
+      <image style="width: 310rpx; height: 375rpx; display: inline-block; box-sizing: border-box; left: 15rpx; top: -336rpx; position: relative" src="{{item.img_src}}" />
+      
+    </view>
+    <button class="favorite-btn" bindtap="toggleFavorite" data-house-id="{{item.houseId}}" style="position: relative; left: 254rpx; top: -94rpx; width: 190rpx; height: 55rpx; display: block; box-sizing: border-box">  
+      <text class="favorite-icon">{{favoriteMap[item.houseId] ? '已收藏' : '收藏'}}</text>  
+      </button>
+  </block>
+</scroll-view>
+</view>

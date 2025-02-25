@@ -1,0 +1,39 @@
+<!--pages/home/home.wxml-->
+<swiper autoplay="true" interval="3000" indicator-dots="true" indicator-color="#aabbcc" indicator-active-color="white" circular="true" style="margin-bottom: 5px;">
+  <swiper-item>
+    <image style="width: 750rpx; height: 523rpx; display: inline-block; box-sizing: border-box" src="../../photo/home.png" />
+  </swiper-item>
+  <swiper-item>
+    <image style="width: 750rpx; height: 357rpx; display: inline-block; box-sizing: border-box; left: 0rpx; top: 0rpx" src="../../photo/home2.png" />
+  </swiper-item>
+  <swiper-item>
+    <image style="width: 750rpx; height: 467rpx; display: inline-block; box-sizing: border-box" src="../../photo/home3.png" />
+  </swiper-item>
+</swiper>
+<view style="position: relative; width: 750rpx; background: #e0c26f; height: 476rpx; left: 0rpx; top: 5rpx; display: block; box-sizing: border-box; border: 1px solid #ccc; border-radius: 10px; margin-bottom: 5px">
+
+
+  <text style="position: relative; background: #aa965f; font-weight: bold; left: 38rpx; top: 22rpx; font-size: large">助手简介</text>
+
+
+
+
+  <view style="position: relative; width: 673rpx; background: #cf9425; height: 354rpx; left: 38rpx; top: 40rpx; text-align: left; display: block; box-sizing: border-box; border-radius: 10px">
+    <text style=" left: 0rpx; top: 0rpx; border: #d3d3d3;font-size: small;white-space: pre-wrap;">      该助手仅提供租房平台的房屋数据，不进行租房交易业务，房屋信息的来源分别为自如，链家，贝壳，我爱我家四个较为可靠的平台,点击房屋信息，将跳转到对应平台的该房屋界面。\n     通过平台跳转页面的按钮，可以跳转到对应平台的微信小程序首页（贝壳与链家共用一个平台）。
+    </text>
+  </view>
+</view>
+<view style="position: relative; width: 750rpx; background: #6abb44; height: 261rpx; left: 0rpx; top: 5rpx; display: block; box-sizing: border-box; border-radius: 10px">
+  <text style="position: relative; background: #b3ccb7; font-weight: bold; left: 33rpx; top: 31rpx; font-size: large">平台跳转</text>
+
+  <button style="position: relative; left: -249rpx; top: 73rpx; width: 183rpx; height: 80rpx; display: block; box-sizing: border-box; font-size: small" bindtap="goToZiRu" >自如</button>
+  <web-view src="{{ziRuUrl}}" wx:if="{{showWebView1}}"></web-view>
+
+  <button style="position: relative; left: -33rpx; top: -8rpx; width: 183rpx; height: 80rpx; display: block; box-sizing: border-box; font-size: small" bindtap="goToLianJia">链家</button>
+  <web-view src="{{lianJiaUrl}}" wx:if="{{showWebView2}}"></web-view>
+
+  <button style="position: relative; left: 210rpx; top: -87rpx; width: 237rpx; height: 80rpx; display: block; box-sizing: border-box; font-size: small" bindtap="goToWoAiWoJia">我爱我家</button>
+  <web-view src="{{woAiWoJiaUrl}}" wx:if="{{showWebView3}}"></web-view>
+
+
+</view>
