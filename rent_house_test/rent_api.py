@@ -12,8 +12,8 @@ from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl, process, all_
 app = Flask(__name__)
 
 # 小程序的 appid 和 appsecret
-APPID = 'wxe7134cbc391a01e4'
-SECRET = 'e8973b95c8d3d4674c64e2d9dc1189e9'
+APPID = ''
+SECRET = ''
 
 
 @app.route('/login', methods=['POST'])
