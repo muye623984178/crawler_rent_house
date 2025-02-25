@@ -90,7 +90,7 @@ dict_ziru = {
 }
 
 area_lianjia = ['北京', '上海', '深圳', '杭州', '南京',
-                '成都', '武汉', '广州', '天津', '台州']
+                '成都', '武汉', '广州', '天津', '台州', '济南']
 dict_lianjia = {
     '北京': 'https://bj.lianjia.com/zufang/',
     '上海': 'https://sh.lianjia.com/zufang/',
@@ -101,7 +101,8 @@ dict_lianjia = {
     '武汉': 'https://wh.lianjia.com/zufang/',
     '广州': 'https://gz.lianjia.com/zufang/',
     '天津': 'https://tj.lianjia.com/zufang/',
-    '台州': 'https://taizhou.lianjia.com/zufang/'
+    '台州': 'https://taizhou.lianjia.com/zufang/',
+    '济南': 'https://jn.lianjia.com/zufang/'
 }
 # area_5ai5jia = ['南昌', '太原']
 area_5ai5jia = ['北京', '上海', '无锡', '杭州', '南京',
@@ -126,7 +127,7 @@ dict_5ai5jia = {
 all_area = ['北京', '上海', '无锡', '杭州', '南京',
             '成都', '郑州', '常州', '天津', '苏州',
             '南昌', '太原', '深圳', '苏州', '台州',
-            '广州', '武汉']
+            '广州', '武汉', '济南']
 
 
 # 若存在图片型价格，数字由图片偏移量确定
@@ -403,9 +404,9 @@ def get_ziru_house_new(url, ocr, area):
         if not s_flag:
             square.append('None')
         if not f_flag:
-            square.append('None')
+            floor.append('None')
         if not d_flag:
-            square.append('None')
+            direction.append('None')
 
     # 爬取标签，并标准化标签数据
     tags_list = driver.find_elements_by_xpath('//div[@class="info-box"]/div[@class="tag"]')
@@ -561,7 +562,6 @@ def process():
         db.execute(sql_ziru, commit=True)
         db.execute(sql_lianjia, commit=True)
         db.execute(sql_woaiwojia, commit=True)
-
 
 
 

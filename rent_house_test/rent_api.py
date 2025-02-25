@@ -1,13 +1,13 @@
 import logging
 import os
 from io import BytesIO
-
+from gevent import pywsgi
 import requests
 from flask import Flask, request, jsonify, make_response, send_file
 import pymysql
 from openpyxl import Workbook
 import pandas as pd
-from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl, process
+from rent_house import ziru_crawl, lianJia_crawl, woAiWoJia_crawl, process, all_area
 
 app = Flask(__name__)
 
@@ -22,7 +22,7 @@ def login():
     if not code:
         return jsonify({'error': 'Missing code'}), 400
 
-        # 调用微信服务器的 sns/jscode2session 接口
+    # 调用微信服务器的 sns/jscode2session 接口
     url = f'https://api.weixin.qq.com/sns/jscode2session?appid={APPID}&secret={SECRET}&js_code={code}&grant_type=authorization_code'
     response = requests.get(url)
     data = response.json()
@@ -34,8 +34,7 @@ def login():
 
         # 检查请求是否成功
     if 'openid' in data and 'session_key' in data:
-        # 在这里你可以将 openid 和 session_key 保存到数据库，或者返回给前端
-        # 例如，返回 openid 给前端
+        # 将 openid 和 session_key 保存到数据库，或者返回给前端
         return jsonify({'openid': data['openid']})
     else:
         # 处理错误情况
@@ -71,7 +70,7 @@ def crawl():
 def export():
     platform = request.json.get('platform')
     if platform == "ziRu":
-        df = pd.read_sql_query("SELECT * FROM ziru1", db)
+        df = pd.read_sql_query("SELECT * FROM ziru", db)
     elif platform == "lianJia":
         df = pd.read_sql_query("SELECT * FROM lianjia", db)
     elif platform == "woAiWoJia":
@@ -100,6 +99,12 @@ def download_file():
         # 文件路径不存在，返回错误响应
         return "文件路径不存在", 404
 
+@app.route('/setPlace', methods=['GET'])
+def setPlace():
+    if all_area:
+        return jsonify(all_area)
+    else:
+        return jsonify({'error': 'place is not set'})
 
 @app.route('/judgeIdentity', methods=['POST'])
 def judgeIdentity():
@@ -126,6 +131,7 @@ def judgeIdentity():
 def processData():
     process()
     return jsonify({'success': 'successfully processing data'})
+
 
 @app.route('/getData', methods=['GET'])
 def getData():
@@ -195,8 +201,9 @@ def getDataByArea_page():
 
     try:
         # 执行SQL查询
-        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id, floor, scale, direction FROM house_info WHERE area=%s"
-               "LIMIT %s OFFSET %s")
+        sql = (
+            "SELECT name, place, price, href, tag, square, img_src, source, id, floor, scale, direction FROM house_info WHERE area=%s"
+            "LIMIT %s OFFSET %s")
         cursor.execute(sql, (area, per_page, offset))
         result = cursor.fetchall()
         if result is not None:
@@ -204,7 +211,8 @@ def getDataByArea_page():
             items_dict = [
                 {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
                  'square': item[5],
-                 'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10], 'direction': item[11]} for item in result]
+                 'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10],
+                 'direction': item[11]} for item in result]
             return jsonify(items_dict)
     except Exception as e:
         # 处理异常
@@ -216,20 +224,38 @@ def getDataByArea_page():
 def findData():
     word = request.args.get('word')
     area = request.args.get('area')
-    word = '%' + word + '%'
-    sql = "SELECT NAME, place, price, href, tag, square, img_src, source, id FROM house_info WHERE NAME LIKE %s OR place LIKE %s OR tag LIKE %s AND area = %s"
-    try:
-        cursor.execute(sql, (word, word, word,area))
-        result = cursor.fetchall()
-        if result is not None:
-            items_dict = [
-                {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
-                 'square': item[5],
-                 'img_src': item[6], 'source': item[7], 'houseId': item[8]} for item in result]
-            return jsonify(items_dict)
-    except Exception as e:
-        print(f"An error occurred in getData: {e}")
-        return jsonify({'error': str(e)}), 500
+    if word == '':
+        sql = "SELECT name, place, price, href, tag, square, img_src, source, id, floor, scale, direction FROM house_info WHERE area = %s"
+        try:
+            cursor.execute(sql, area)
+            result = cursor.fetchall()
+            if result is not None:
+                items_dict = [
+                    {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                     'square': item[5],
+                     'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10],
+                     'direction': item[11]} for item in result]
+                return jsonify(items_dict)
+        except Exception as e:
+            print(f"An error occurred in getData: {e}")
+            return jsonify({'error': str(e)}), 500
+    else:
+        word = '%' + word + '%'
+        sql = ("SELECT name, place, price, href, tag, square, img_src, source, id, floor, scale, direction FROM house_info WHERE NAME LIKE %s "
+               "OR place LIKE %s OR tag LIKE %s AND area = %s")
+        try:
+            cursor.execute(sql, (word, word, word, area))
+            result = cursor.fetchall()
+            if result is not None:
+                items_dict = [
+                    {'name': item[0], 'place': item[1], 'price': item[2], 'href': item[3], 'tag': item[4],
+                     'square': item[5],
+                     'img_src': item[6], 'source': item[7], 'houseId': item[8], 'floor': item[9], 'scale': item[10],
+                     'direction': item[11]} for item in result]
+                return jsonify(items_dict)
+        except Exception as e:
+            print(f"An error occurred in getData: {e}")
+            return jsonify({'error': str(e)}), 500
 
 
 @app.route('/getStoreData', methods=['GET'])
@@ -310,10 +336,11 @@ def judgeStore():
     try:
         cursor.execute(sql, openId)
         result = cursor.fetchall()
-        if result is None:
-            return "None"
+        favoriteMap = {}
+        if result == []:
+            print("null")
+            return jsonify(favoriteMap)
         else:
-            favoriteMap = {}
             for item in result:
                 # print(item[0])
                 favoriteMap[item[0]] = True
@@ -349,8 +376,6 @@ def refresh():
                         FROM lianjia;"""
     else:
         return jsonify({'error': "platform参数错误"})
-    sql_all = 'SELECT href FROM house_info WHERE source = "自如"'
-    sql_platform = 'SELECT href FROM ziru'
     cursor.execute(sql_all)
     allResult = cursor.fetchall()
     cursor.execute(sql_platform)
@@ -384,4 +409,6 @@ def getName():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.run(debug=True)
+    server = pywsgi.WSGIServer(('127.0.0.1', 5000), app)
+    server.serve_forever()
